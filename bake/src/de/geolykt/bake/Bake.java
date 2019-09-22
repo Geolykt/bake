@@ -36,6 +36,7 @@ public class Bake extends JavaPlugin {
 
 	public int BakeProgress = 0;
 	private  HashMap<UUID, Boolean> Reminded= new HashMap<UUID, Boolean>();
+	protected static BakeCode Code;
 	
 	@Override
 	public void onEnable () {
@@ -75,9 +76,9 @@ public class Bake extends JavaPlugin {
 		getConfig().addDefault("bake.lore.slot.4", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
 		// CHAT
 		// When players use /bake
-		getConfig().addDefault("bake.chat.progress.0", "=====Running Bake &VERSION; by Geolykt =====");
-		getConfig().addDefault("bake.chat.progress.1", "The Bake Progress is: &INTPROG; of &INTMAX; ");
-		getConfig().addDefault("bake.chat.progress.2", "So we are &PERCENT; % done! Keep up!");
+		getConfig().addDefault("bake.chat.progress.0", "=====Running Bake %VERSION% by Geolykt =====");
+		getConfig().addDefault("bake.chat.progress.1", "The Bake Progress is: %INTPROG% of %INTMAX% ");
+		getConfig().addDefault("bake.chat.progress.2", "So we are %PERCENT% % done! Keep up!");
 		getConfig().addDefault("bake.chat.progress.3", "========================================");
 		// when players use /contibute
 		getConfig().addDefault("bake.chat.contr.1", "&INTPROG; was added to the project! Thanks!");
@@ -113,10 +114,10 @@ public class Bake extends JavaPlugin {
 				if (s.equals("NIL")) {
 					continue;
 				}
-				s = s.replaceAll(" &INTPROG; ", " " + progress + " ");
-				s = s.replaceAll(" &INTMAX; ", " " + getConfig().getInt("bake.wheat_Required") + " ");
-				s = s.replaceAll(" &PERCENT; ", " " + String.format("%2.02f",progressPercent) + " ");
-				s = s.replaceAll(" &VERSION; ", " 1.4.0 ");//TODO Adapt to newest version
+				s = s.replaceAll("%INTPROG%", " " + progress + " ");
+				s = s.replaceAll("%INTMAX%", " " + getConfig().getInt("bake.wheat_Required") + " ");
+				s = s.replaceAll("%PERCENT%", " " + String.format("%2.02f",progressPercent) + " ");
+				s = s.replaceAll("%VERSION%", " 1.4.1 ");//TODO Adapt to newest version
 				sender.sendMessage(s);
 			}
 			/* 
