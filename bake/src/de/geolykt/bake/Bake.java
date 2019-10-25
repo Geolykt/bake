@@ -3,6 +3,7 @@ package de.geolykt.bake;
 import de.geolykt.bake.Bake_Auxillary;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -33,18 +34,64 @@ import org.bukkit.plugin.java.JavaPlugin;
  * 1.4.1: Merged bake spigot 1.13/1.14 and spigot 1.12 versions (compatible with 1.12 AND 1.13/1.14)<br>
  * 1.4.1: Added config version<br>
  * 1.4.1: Changed the way the chat config system works, it has now an entire config line allocated for multiple ingame lines. <br>
- * 1.4.1: Added config parameter "bake.general.noMeddle", if set to true, the config file won't be altered by the plugin in any way. <br>
+ * 1.4.1: Added config parameter "bake.general.noMeddle", if set to true, the config file won't be altered by the plugin in any way. <br></li><li>
+ * 1.4.2.0: Added placeholder: "%TIMES%", which replaces the amount of times the project has been completed, stored in the config. <br>
+ * 1.4.2: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
+ * 1.4.2: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
+ * 1.4.2: Added placeholder: "%BESTSTAT%", which replaces the top amount contributed by a player over the lifetime of the server <br>
+ * 1.4.2: Added placeholder: "%BEST%", which replaces the time that it took for the fastest project to complete. <br>
+ * 1.4.2: Added placeholder: "%BESTDATE%", which replaces the date where the fastest project was completed. <br>
+ * 1.4.2.0: Added placeholder: "%TODAY%", which replaces how many projects were completed today. <br>
+ * 1.4.2: Added placeholder: "%RECORD%", which replaces how many projects were completed on the day where the most projects were completed. <br>
+ * 1.4.2: Added placeholder: "%PARTICIPANTS%", which replaces how many participants have participated in the ongoing project. <br>
+ * 1.4.2: Added placeholder: "%PARTICIPANTSTODAY%", which replaces how many participants have participated today. <br>
+ * 1.4.2: Added placeholder: "%PARTICIPANTSRECORD%", which replaces how many participants have contributed at most. <br>
+ * 1.4.2.0: Added placeholder: "%LEFT%", which replaces the wheat that is left until the project is completed. <br> 
+ * 1.4.2.0: Added placeholder: "%LAST%", which replaces the time and date when the last project got finished. <br>
+ * 1.4.2.0: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
+ * 1.4.2: Added config parameter "bake.general.permremember", if set to true, the plugin will store ALL contributors and the amount they have contributed in a flat file<br>
+ * 1.4.2.0: Added config parameter "bake.general.cnfgStore", if set to true, the plugin is allowed to store values inside the config (ignoring noMeddle) else some functions might not work properly. Note: the plugin will use it anyway, but it will not set default values. It might gain more meaning in future updates<br>
+ * 1.4.2.0: The Public int "BakeProgress" in class "Bake" is now a private int, if your plugin used the value, please change that <br>
+ * 1.4.2.0: Added command: "/bakestats", which is just a bit like /bake, but has the intended use with statistics surrounding the bake project form all the way since 1.4.2.0 (or a newer version) was implemented on the server. <br>
  * </li></ul>
  * 
- * @version 4 (Exclusion Update)
+ * @version 1.4.2.0
  * @author Geolykt
+ * @since 0.0.1 - SNAPSHOT
  *
  */
 public class Bake extends JavaPlugin {
 
-	public int BakeProgress = 0;
+	private int BakeProgress = 0;
 	private  HashMap<UUID, Boolean> Reminded= new HashMap<UUID, Boolean>();
 //	protected static BakeCode Code;
+	
+	/**
+	 * Private Container for cached /bake messages.
+	 * @since 1.4.2
+	 */
+	private String msgProg;
+	/**
+	 * Private Container for cached Contribution messages
+	 * @since 1.4.2
+	 */
+	private String msgContr;
+	/**
+	 * Private Container for cached Contribution messages that need to be send out globally
+	 * @since 1.4.2
+	 */
+	private String msgGlobContr;
+	/**
+	 * Private Container for cached messages when the project finishes
+	 * @since 1.4.2
+	 */
+	private String msgFin;
+	/**
+	 * Private Container for cached /bakestats messages
+	 * @since 1.4.2
+	 */
+	private String msgStats;
+	
 	
 	@Override
 	public void onEnable () {
@@ -52,6 +99,7 @@ public class Bake extends JavaPlugin {
 		if (!getConfig().getBoolean("bake.general.noMeddle", false)) {
 		
 			getConfig().addDefault("bake.general.configVersion", 3);
+			
 		
 			// Config Convert Process
 			if (getConfig().getInt("bake.general.configVersion") > 3) {
@@ -64,7 +112,6 @@ public class Bake extends JavaPlugin {
 			if (getConfig().getInt("bake.general.slots", -1) != -1) {
 				//Notify User
 				getServer().getLogger().log(Level.WARNING, "The config version is older than it should be! The plugin will try to update the config, but it may look strange or not work at all.");
-				//TODO Check whether this was done correctly
 				String s = "";
 				for (int i = 0; i < getConfig().getInt("bake.general.chatslots"); i++) {
 					s += getConfig().getString("bake.chat.progress." + i, "") + "%NEWLINE%";
@@ -102,6 +149,7 @@ public class Bake extends JavaPlugin {
 			getConfig().addDefault("bake.general.remember", true);
 			getConfig().addDefault("bake.general.deleteRemembered", true);
 			getConfig().addDefault("bake.general.noMeddle", false);
+			getConfig().addDefault("bake.general.cnfgStore", true);
 		
 			getConfig().addDefault("bake.award.maximum", 3);
 			//Loot
@@ -144,6 +192,15 @@ public class Bake extends JavaPlugin {
 			getConfig().options().copyDefaults(true);
 			saveConfig();
 		}
+		//Store values
+		if (getConfig().getBoolean("bake.general.cnfgStore", true)) {
+			getConfig().addDefault("bake.save.times", 0);
+			getConfig().addDefault("bake.save.last", "ACUTUALLY NEVER");
+			getConfig().addDefault("bake.save.today", 0);
+			
+			getConfig().options().copyDefaults(true);
+			saveConfig();
+		}
 		BakeProgress = (int) getConfig().get("bake.wheat_Required");
 	}
 	
@@ -168,7 +225,18 @@ public class Bake extends JavaPlugin {
 			}
 			
 			return true;
-		} else if (cmd.getName().equalsIgnoreCase("contribute")) {
+		} else if (cmd.getName().equalsIgnoreCase("bakestats")) 
+		{
+			double progressPercent = (double) (-(BakeProgress - getConfig().getInt("bake.wheat_Required")) / (getConfig().getInt("bake.wheat_Required") + 0.0)*100);
+			int progress = -(BakeProgress - getConfig().getInt("bake.wheat_Required") );
+			
+			for (String s : getConfig().getString("bake.chat.progress2", "ERROR").split("%NEWLINE%")) {
+				s = Bake_Auxillary.ReplacePlaceHolders(s, progress, getConfig().getInt("bake.wheat_Required"), progressPercent, "ERROR");
+				sender.sendMessage(s);
+			}
+			
+		} else if (cmd.getName().equalsIgnoreCase("contribute")) 
+		{
 			
 			if (!(sender instanceof Player)) {//Check if the user is really a player; would cause havoc, if not
 				sender.sendMessage("This command can only be run by a player.");  //Shown if not a player
@@ -303,27 +371,23 @@ public class Bake extends JavaPlugin {
 								if (string.split("@").length < 2) {
 									break;
 								}
-								
-								//TODO Ensure & check usability over multiple versions
 								// Source for errors: Enchantment.getByKey only exists in spigot API level 13 or higher, but not in spigot API level 12 or lower!
 								// So the code will check which version the server is running on and then uses the appropriate function, this is doable as Java allows the use of invalid functions within the sourcecode as long as they don't get called.
 								
 								//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
-
-								
 								int APILevel = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
 								try { //prevent stupidity of the server owner
 									//API 13+
 									if (APILevel >= 13) {
 										enchantments.put(Enchantment.getByKey(NamespacedKey.minecraft(string.split("@")[0])), Integer.valueOf(string.split("@")[1]));
-									} else if (APILevel <= 12) {//API 12 or lower (some levels might  still not work)
+									} else if (APILevel <= 12) {//API 12 or lower (some levels might  still not work though)
 										//This is deprecated for Bukkit 1.13 or higher, but since it doesn't get called on these versions, it is fine
 										enchantments.put(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]));
 									}
 								} catch (NullPointerException e) {
-									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file.");
+									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
 								} catch (java.lang.IllegalArgumentException e) {
-									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file.");
+									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
 								}
 							}
 							
@@ -350,14 +414,67 @@ public class Bake extends JavaPlugin {
 						
 					}
 					
+					//Bake project finished 
 					BakeProgress = getConfig().getInt("bake.wheat_Required");
 					if (getConfig().getBoolean("bake.general.deleteRemembered")) {
 						Reminded.clear();
 					}
+					getConfig().set("bake.save.times", getConfig().getInt("bake.save.times", 0) + 1);
+					int today = 0;
+					String last = getConfig().getString("bake.save.last", "ACUTUALLY NEVER");
+					if (!(last.equals("ACUTUALLY NEVER")) && last.split(" ")[2].equals(new Date(System.currentTimeMillis()).toString().split(" ")[2])) {
+						today = getConfig().getInt("bake.save.today", 0);
+					}
+					getConfig().set("bake.save.today", today);
+					getConfig().set("bake.save.last", new Date(System.currentTimeMillis()).toString());
+
+					getConfig().options().copyDefaults(true);
+					saveConfig();
 				}
 			}
 			return true;
 		}
 		return false;
 	}
+	
+	/**
+	 * Replaces advanced placeholders and caches the messages, simpler placeholders (those who change frequently) are kept
+	 *
+	 * @since 1.4.2
+	 * @author Geolykt
+	 */
+	public void replaceAdvancedCached () {
+//		double progressPercent = (double) (-(BakeProgress - getConfig().getInt("bake.wheat_Required")) / (getConfig().getInt("bake.wheat_Required") + 0.0)*100);
+//		int progress = -(BakeProgress - getConfig().getInt("bake.wheat_Required") );
+		
+		String last  = getConfig().getString("bake.save.last", "ACUTUALLY NEVER");
+		String times = getConfig().get("bake.save.times", 0).toString();
+		String today = "ERROR";
+		
+		String s = getConfig().getString("bake.chat.progress2", "ERROR");
+		s = s.replaceAll("%TIMES%", times);
+		s = s.replaceAll("%TODAY%", today);
+		s = s.replaceAll("%LAST%", last);
+	    msgProg = s;
+	    
+	    s = getConfig().getString("bake.chat.contr2", "ERROR");
+		s = s.replaceAll("%TIMES%", times);
+		s = s.replaceAll("%TODAY%", today);
+		s = s.replaceAll("%LAST%", last);
+		msgContr = s;
+		
+		s = getConfig().getString("bake.chat.global.contr2", "ERROR");
+		s = s.replaceAll("%TIMES%", times);
+		s = s.replaceAll("%TODAY%", today);
+		s = s.replaceAll("%LAST%", last);
+		msgGlobContr = s;
+		
+		s = getConfig().getString("bake.chat.finish2", "ERROR");
+		s = s.replaceAll("%TIMES%", times);
+		s = s.replaceAll("%TODAY%", today);
+		s = s.replaceAll("%LAST%", last);
+		msgFin = s;
+		
+	}
+
 }
