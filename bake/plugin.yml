@@ -15,7 +15,7 @@ commands:
     usage: "Usage: /contribute [number]"
     permission: bake.command.contribute
     permission-message: You have insufficent permissions, you need bake.command.contribute for that command, contact a server administrator if you belive that this is an error
-  contribute:
+  bakestats:
     description: has the intended use for statistics surrounding the bake project
     usage: "Usage: /bakestats"
     permission: bake.command.stats

@@ -191,12 +191,14 @@ public class Bake extends JavaPlugin {
 			getConfig().addDefault("bake.general.doRecordSurpassBroadcast", true);
 			getConfig().addDefault("bake.chat.recordSurpassBroadcast", ChatColor.GOLD + "The previous record of %RECORD% on the %BESTDATE% was broken by the new record of %TODAY%!");
 			// When players use /bake
-			getConfig().addDefault("bake.chat.progress2", "========= Running Bake %VERSION%  ========== %NEWLINE% The Bake Progress is: %INTPROG% of %INTMAX% %NEWLINE% So we are %PERCENT% % done! Keep up! %NEWLINE% ========================================");
+			getConfig().addDefault("bake.chat.progress2", ChatColor.AQUA + "========= Running Bake %VERSION%  ========== %NEWLINE% " + ChatColor.AQUA + "The Bake Progress is: %INTPROG% of %INTMAX% %NEWLINE% " + ChatColor.AQUA + "So we are %PERCENT% % done! Keep up! %NEWLINE%" + ChatColor.AQUA + " ========================================");
+			// When players use /bakestats
+			getConfig().addDefault("bake.chat.bakestats", "========= Running Bake %VERSION%  ========== %NEWLINE% The bake project was completed %TIMES% in total, the last time on %LAST%. %NEWLINE% The most projects were completed on %BESTDATE% with %RECORD% %NEWLINE% ========================================");
 			// when players use /contibute
 			getConfig().addDefault("bake.chat.contr2", "%INTPROG% was added to the project! Thanks!");
 			getConfig().addDefault("bake.chat.global.contr2",ChatColor.GOLD + "%PLAYER% has contributed %INTPROG% to the bake projects! We are now a bit closer to the rewards!");
 			// when the bake project is finished
-			getConfig().addDefault("bake.chat.finish2", ChatColor.BOLD + "" + ChatColor.AQUA + "The bake project is finsished! Everyone gets the rewards!");
+			getConfig().addDefault("bake.chat.finish2", ChatColor.BOLD + "" + ChatColor.AQUA + "The bake project is finished! Everyone gets the rewards!");
 		
 		
 		
@@ -260,26 +262,29 @@ public class Bake extends JavaPlugin {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (cmd.getName().equalsIgnoreCase("bake")) 
+		if (cmd.getName().equalsIgnoreCase("bakestats")) 
 		{
 			
 			double progressPercent = (double) (-(BakeProgress - getConfig().getInt("bake.wheat_Required")) / (getConfig().getInt("bake.wheat_Required") + 0.0)*100);
 			int progress = -(BakeProgress - getConfig().getInt("bake.wheat_Required") );
 			
 
-		    msgProg = replaceAdvanced(getConfig().getString("bake.chat.progress2", "ERROR"));
-			for (String s : msgProg.split("%NEWLINE%")) {
+		    msgStats = replaceAdvanced(getConfig().getString("bake.chat.bakestats", "ERROR"));
+			for (String s : msgStats.split("%NEWLINE%")) {
 				s = Bake_Auxillary.ReplacePlaceHolders(s, progress, getConfig().getInt("bake.wheat_Required"), progressPercent, "ERROR");
 				sender.sendMessage(s);
 			}
 			
 			return true;
-		} else if (cmd.getName().equalsIgnoreCase("bakestats")) 
+		} else if (cmd.getName().equalsIgnoreCase("bake")) 
 		{
+
 			double progressPercent = (double) (-(BakeProgress - getConfig().getInt("bake.wheat_Required")) / (getConfig().getInt("bake.wheat_Required") + 0.0)*100);
 			int progress = -(BakeProgress - getConfig().getInt("bake.wheat_Required") );
 			
-			for (String s : getConfig().getString("bake.chat.progress2", "ERROR").split("%NEWLINE%")) {
+
+		    msgProg = replaceAdvanced(getConfig().getString("bake.chat.progress2", "ERROR"));
+			for (String s : msgProg.split("%NEWLINE%")) {
 				s = Bake_Auxillary.ReplacePlaceHolders(s, progress, getConfig().getInt("bake.wheat_Required"), progressPercent, "ERROR");
 				sender.sendMessage(s);
 			}
@@ -470,8 +475,10 @@ public class Bake extends JavaPlugin {
 					}
 					Times++;
 					
+					DateTimeFormatter format = DateTimeFormatter.ISO_LOCAL_DATE.withLocale(Locale.UK)
+							.withZone(ZoneId.systemDefault());
 					//If the two ISO Local Dates are the same, then the amount of projects is increased, otherwise it will be reset to 1 (since the project got completed)
-					if (DateTimeFormatter.ISO_LOCAL_DATE.format(Last).equals(DateTimeFormatter.ISO_LOCAL_DATE.format(Instant.now()))) {
+					if (format.format(Last).equals(format.format(Instant.now()))) {
 						//same date
 						Today++;
 					} else {
@@ -515,6 +522,7 @@ public class Bake extends JavaPlugin {
 		
 		msgFin = replaceAdvanced(getConfig().getString("bake.chat.finish2", "ERROR"));
 		
+		msgStats = replaceAdvanced(getConfig().getString("bake.chat.bakestat", "ERROR"));
 	}
 
 	public String replaceAdvanced(String s) {
