@@ -9,7 +9,7 @@ package de.geolykt.bake;
  */
 public class Bake_Auxillary {
 
-	private static final String PLUGIN_VERSION = "1.4.2"; 
+	private static final String PLUGIN_VERSION = "1.4.2.0-Nightly"; 
 	/**
 	 * This function is in place to make it more easy for the plugin to parse the config file from an older version (config version 2) to a newer (config version 3+).
 	 * 

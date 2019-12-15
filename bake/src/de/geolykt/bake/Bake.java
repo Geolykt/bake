@@ -2,9 +2,12 @@ package de.geolykt.bake;
 
 import de.geolykt.bake.Bake_Auxillary;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -51,8 +54,10 @@ import org.bukkit.plugin.java.JavaPlugin;
  * 1.4.2.0: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * 1.4.2: Added config parameter "bake.general.permremember", if set to true, the plugin will store ALL contributors and the amount they have contributed in a flat file<br>
  * 1.4.2.0: Added config parameter "bake.general.cnfgStore", if set to true, the plugin is allowed to store values inside the config (ignoring noMeddle) else some functions might not work properly. Note: the plugin will use it anyway, but it will not set default values. It might gain more meaning in future updates<br>
+ * 1.4.2.0: Added config parameter "bake.general.doRecordSurpassBroadcast", by default set to true, if true, it will broadcast a message when the previous record was broken.<br>
  * 1.4.2.0: The Public int "BakeProgress" in class "Bake" is now a private int, if your plugin used the value, please change that <br>
- * 1.4.2.0: Added command: "/bakestats", which is just a bit like /bake, but has the intended use with statistics surrounding the bake project form all the way since 1.4.2.0 (or a newer version) was implemented on the server. <br>
+ * 1.4.2.0: A broadcast will usually be done (if not disabled via setting) when the Record gets broken. <br>
+ * 1.4.2: Added command: "/bakestats", which is just a bit like /bake, but has the intended use with statistics surrounding the bake project form all the way since 1.4.2.0 (or a newer version) was implemented on the server. <br>
  * </li></ul>
  * 
  * @version 1.4.2.0
@@ -62,9 +67,12 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class Bake extends JavaPlugin {
 
-	private int BakeProgress = 0;
-	private  HashMap<UUID, Boolean> Reminded= new HashMap<UUID, Boolean>();
-//	protected static BakeCode Code;
+	private int BakeProgress = 0; //The Progress of the project
+	private short Today = 0; //The projects finished today
+	private short Times = 0; //The projects finished up to date
+	private short BestAmount = 0; //The most projects finished in a day
+	private Instant Last = Instant.EPOCH; //The last time a project was completed
+	private  HashMap<UUID, Boolean> Reminded= new HashMap<UUID, Boolean>(); //A HashMap that
 	
 	/**
 	 * Private Container for cached /bake messages.
@@ -102,7 +110,7 @@ public class Bake extends JavaPlugin {
 			
 		
 			// Config Convert Process
-			if (getConfig().getInt("bake.general.configVersion") > 3) {
+			if (getConfig().getInt("bake.general.configVersion", -1) > 3) {
 				//Notify User
 				getServer().getLogger().log(Level.WARNING, "The config version is newer than it should be! The plugin will try to run normal, but it might break  the config file!");
 				//the code can't do anything here, pray that it will work anyway.
@@ -141,7 +149,7 @@ public class Bake extends JavaPlugin {
 				s = Bake_Auxillary.NewConfig(s);
 				getConfig().addDefault("bake.chat.finish2", s);
 				s = null;
-		}
+			}
 		
 			//General Stuff
 			getConfig().addDefault("bake.wheat_Required", 1000);
@@ -158,13 +166,13 @@ public class Bake extends JavaPlugin {
 			getConfig().addDefault("bake.amount.slot.0", 2);
 			getConfig().addDefault("bake.lore.slot.0", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
 			getConfig().addDefault("bake.name.slot.0", ChatColor.BLUE + "A DIAMOND");
-			getConfig().addDefault("bake.enchantment.slot.0", "unbreaking@5");
+			getConfig().addDefault("bake.enchantment.slot.0", "UNBREAKING@5");
 			getConfig().addDefault("bake.award.slot.1", "CAKE");
 			getConfig().addDefault("bake.chances.slot.1", 1);
 			getConfig().addDefault("bake.amount.slot.1", 1);
 			getConfig().addDefault("bake.lore.slot.1", ChatColor.LIGHT_PURPLE + "Thank you for participating! | Here! Have a cake!");
 			getConfig().addDefault("bake.name.slot.1", ChatColor.RED + "YUMMY!");
-			getConfig().addDefault("bake.enchantment.slot.1", "unbreaking@5|mending@1");
+			getConfig().addDefault("bake.enchantment.slot.1", "UNBREAKING@5|MENDING@1");
 			getConfig().addDefault("bake.award.slot.2", "NETHER_STAR");
 			getConfig().addDefault("bake.chances.slot.2", 0.05);
 			getConfig().addDefault("bake.amount.slot.2", 1);
@@ -179,6 +187,9 @@ public class Bake extends JavaPlugin {
 			getConfig().addDefault("bake.amount.slot.4", 16);
 			getConfig().addDefault("bake.lore.slot.4", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
 			// CHAT
+			//record surpass broadcast
+			getConfig().addDefault("bake.general.doRecordSurpassBroadcast", true);
+			getConfig().addDefault("bake.chat.recordSurpassBroadcast", ChatColor.GOLD + "The previous record of %RECORD% on the %BESTDATE% was broken by the new record of %TODAY%!");
 			// When players use /bake
 			getConfig().addDefault("bake.chat.progress2", "========= Running Bake %VERSION%  ========== %NEWLINE% The Bake Progress is: %INTPROG% of %INTMAX% %NEWLINE% So we are %PERCENT% % done! Keep up! %NEWLINE% ========================================");
 			// when players use /contibute
@@ -192,10 +203,12 @@ public class Bake extends JavaPlugin {
 			getConfig().options().copyDefaults(true);
 			saveConfig();
 		}
+		
 		//Store values
 		if (getConfig().getBoolean("bake.general.cnfgStore", true)) {
+			readValues();
 			getConfig().addDefault("bake.save.times", 0);
-			getConfig().addDefault("bake.save.last", "ACUTUALLY NEVER");
+			getConfig().addDefault("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH));
 			getConfig().addDefault("bake.save.today", 0);
 			
 			getConfig().options().copyDefaults(true);
@@ -204,12 +217,46 @@ public class Bake extends JavaPlugin {
 		BakeProgress = (int) getConfig().get("bake.wheat_Required");
 	}
 	
+	/**
+	 * This function reads the config file and gets all useful values from it and stores them in their respective variables.
+	 * 
+	 * @author Geolykt
+	 * @since 1.4.2
+	 * 
+	 */
+	private void readValues() {
+		Last = Instant.parse(getConfig().getString("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH)));
+		Times = (short) getConfig().getInt("bake.save.times", 0);
+		if (!Last.equals(Instant.EPOCH)) {
+			Today = (short) getConfig().getInt("bake.save.today", 0);
+		}
+		BestAmount = (short) getConfig().getInt("bake.save.record", 0);
+	}
+
 	@Override
 	public void onDisable () {
-		//Empty
+		saveValues();
 	}
 	
 
+
+	/**
+	 * This function writes specific values in the config file (<u>if permitted</u>) for storage and later use.
+	 * 
+	 * @author Geolykt
+	 * @since 1.4.2
+	 * 
+	 */
+	private void saveValues() {
+		if (getConfig().getBoolean("bake.general.cnfgStore", true)) {
+			getConfig().set("bake.save.times", Times);
+			getConfig().set("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Last));
+			getConfig().set("bake.save.today", Today);
+			getConfig().set("bake.save.record", BestAmount);
+			saveConfig();
+		}
+		
+	}
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -219,7 +266,9 @@ public class Bake extends JavaPlugin {
 			double progressPercent = (double) (-(BakeProgress - getConfig().getInt("bake.wheat_Required")) / (getConfig().getInt("bake.wheat_Required") + 0.0)*100);
 			int progress = -(BakeProgress - getConfig().getInt("bake.wheat_Required") );
 			
-			for (String s : getConfig().getString("bake.chat.progress2", "ERROR").split("%NEWLINE%")) {
+
+		    msgProg = replaceAdvanced(getConfig().getString("bake.chat.progress2", "ERROR"));
+			for (String s : msgProg.split("%NEWLINE%")) {
 				s = Bake_Auxillary.ReplacePlaceHolders(s, progress, getConfig().getInt("bake.wheat_Required"), progressPercent, "ERROR");
 				sender.sendMessage(s);
 			}
@@ -309,13 +358,14 @@ public class Bake extends JavaPlugin {
 				}
 				// Command executed
 
-				for (String s : getConfig().getString("bake.chat.contr2", "ERROR").split("%NEWLINE%")) {
-					s = Bake_Auxillary.ReplacePlaceHolders(s, Integer.parseInt(args[0]), getConfig().getInt("bake.wheat_Required"), -1, sender.getName());
+				replaceAdvancedCached();
+				for (String s : msgContr.split("%NEWLINE%")) {
+					s = Bake_Auxillary.ReplacePlaceHolders(s, Integer.parseInt(args[0]), getConfig().getInt("bake.wheat_Required"), -1, player.getDisplayName());
 					sender.sendMessage(s);
 				}
 
-				for (String s : getConfig().getString("bake.chat.global.contr2", "ERROR").split("%NEWLINE%")) {
-					s = Bake_Auxillary.ReplacePlaceHolders(s, Integer.parseInt(args[0]), getConfig().getInt("bake.wheat_Required"), -1, sender.getName());
+				for (String s : msgGlobContr.split("%NEWLINE%")) {
+					s = Bake_Auxillary.ReplacePlaceHolders(s, Integer.parseInt(args[0]), getConfig().getInt("bake.wheat_Required"), -1, player.getDisplayName());
 					getServer().broadcastMessage(s);
 				}
 				
@@ -333,9 +383,8 @@ public class Bake extends JavaPlugin {
 				
 				// Project finished
 				if (BakeProgress <= 0) {
-
-					for (String s : getConfig().getString("bake.chat.finish2", "ERROR").split("%NEWLINE%")) {
-						s = Bake_Auxillary.ReplacePlaceHolders(s, Integer.parseInt(args[0]), getConfig().getInt("bake.wheat_Required"), -1, sender.getName());
+					for (String s : msgFin.split("%NEWLINE%")) {
+						s = Bake_Auxillary.ReplacePlaceHolders(s, Integer.parseInt(args[0]), getConfig().getInt("bake.wheat_Required"), -1, player.getDisplayName());
 						getServer().broadcastMessage(s);
 					}
 					ItemStack items;
@@ -415,21 +464,30 @@ public class Bake extends JavaPlugin {
 					}
 					
 					//Bake project finished 
-					BakeProgress = getConfig().getInt("bake.wheat_Required");
-					if (getConfig().getBoolean("bake.general.deleteRemembered")) {
+					BakeProgress = getConfig().getInt("bake.wheat_Required");//reset progress
+					if (getConfig().getBoolean("bake.general.deleteRemembered")) {//Clear the list of contributors
 						Reminded.clear();
 					}
-					getConfig().set("bake.save.times", getConfig().getInt("bake.save.times", 0) + 1);
-					int today = 0;
-					String last = getConfig().getString("bake.save.last", "ACUTUALLY NEVER");
-					if (!(last.equals("ACUTUALLY NEVER")) && last.split(" ")[2].equals(new Date(System.currentTimeMillis()).toString().split(" ")[2])) {
-						today = getConfig().getInt("bake.save.today", 0);
+					Times++;
+					
+					//If the two ISO Local Dates are the same, then the amount of projects is increased, otherwise it will be reset to 1 (since the project got completed)
+					if (DateTimeFormatter.ISO_LOCAL_DATE.format(Last).equals(DateTimeFormatter.ISO_LOCAL_DATE.format(Instant.now()))) {
+						//same date
+						Today++;
+					} else {
+						//different date. If the record is lower than what was archived the day before, then the record gets overridden with the amount of stuff done the day before
+						if (Today > BestAmount) {
+							if (getConfig().getBoolean("bake.general.doRecordSurpassBroadcast", true)) {
+								this.getServer().broadcastMessage(Bake_Auxillary.ReplacePlaceHolders(replaceAdvanced(getConfig().getString("bake.chat.recordSurpassBroadcast", "ERROR")), Integer.parseInt(args[0]), getConfig().getInt("bake.wheat_Required"), -1, player.getDisplayName()));
+							}
+							BestAmount = Today;
+						}
+						Today = 1;
 					}
-					getConfig().set("bake.save.today", today);
-					getConfig().set("bake.save.last", new Date(System.currentTimeMillis()).toString());
-
-					getConfig().options().copyDefaults(true);
-					saveConfig();
+					
+					Last = Instant.now();
+					saveValues();
+					
 				}
 			}
 			return true;
@@ -438,7 +496,7 @@ public class Bake extends JavaPlugin {
 	}
 	
 	/**
-	 * Replaces advanced placeholders and caches the messages, simpler placeholders (those who change frequently) are kept
+	 * Replaces advanced placeholders and caches the messages, simpler placeholders (those who change frequently) are not changed
 	 *
 	 * @since 1.4.2
 	 * @author Geolykt
@@ -447,34 +505,25 @@ public class Bake extends JavaPlugin {
 //		double progressPercent = (double) (-(BakeProgress - getConfig().getInt("bake.wheat_Required")) / (getConfig().getInt("bake.wheat_Required") + 0.0)*100);
 //		int progress = -(BakeProgress - getConfig().getInt("bake.wheat_Required") );
 		
-		String last  = getConfig().getString("bake.save.last", "ACUTUALLY NEVER");
-		String times = getConfig().get("bake.save.times", 0).toString();
-		String today = "ERROR";
+		//---------------------------------
 		
-		String s = getConfig().getString("bake.chat.progress2", "ERROR");
-		s = s.replaceAll("%TIMES%", times);
-		s = s.replaceAll("%TODAY%", today);
-		s = s.replaceAll("%LAST%", last);
-	    msgProg = s;
+	    msgProg = replaceAdvanced(getConfig().getString("bake.chat.progress2", "ERROR"));
 	    
-	    s = getConfig().getString("bake.chat.contr2", "ERROR");
-		s = s.replaceAll("%TIMES%", times);
-		s = s.replaceAll("%TODAY%", today);
-		s = s.replaceAll("%LAST%", last);
-		msgContr = s;
+		msgContr = replaceAdvanced(getConfig().getString("bake.chat.contr2", "ERROR"));
 		
-		s = getConfig().getString("bake.chat.global.contr2", "ERROR");
-		s = s.replaceAll("%TIMES%", times);
-		s = s.replaceAll("%TODAY%", today);
-		s = s.replaceAll("%LAST%", last);
-		msgGlobContr = s;
+		msgGlobContr = replaceAdvanced(getConfig().getString("bake.chat.global.contr2", "ERROR"));
 		
-		s = getConfig().getString("bake.chat.finish2", "ERROR");
-		s = s.replaceAll("%TIMES%", times);
-		s = s.replaceAll("%TODAY%", today);
-		s = s.replaceAll("%LAST%", last);
-		msgFin = s;
+		msgFin = replaceAdvanced(getConfig().getString("bake.chat.finish2", "ERROR"));
 		
 	}
 
+	public String replaceAdvanced(String s) {
+		s = s.replaceAll("%TIMES%", String.valueOf(Times));
+		s = s.replaceAll("%TODAY%", String.valueOf(Today));
+		DateTimeFormatter format = DateTimeFormatter.RFC_1123_DATE_TIME.withLocale(Locale.UK)
+													.withZone(ZoneId.systemDefault());
+		s = s.replaceAll("%LAST%", format.format(Last));
+		s = s.replaceAll("%RECORD%", String.valueOf(BestAmount));
+		return s;
+	}
 }
