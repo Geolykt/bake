@@ -45,8 +45,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  * 1.4.2: Added placeholder: "%BEST%", which replaces the time that it took for the fastest project to complete. <br>
  * 1.4.2: Added placeholder: "%BESTDATE%", which replaces the date where the fastest project was completed. <br>
  * 1.4.2.0: Added placeholder: "%TODAY%", which replaces how many projects were completed today. <br>
- * 1.4.2: Added placeholder: "%RECORD%", which replaces how many projects were completed on the day where the most projects were completed. <br>
- * 1.4.2: Added placeholder: "%PARTICIPANTS%", which replaces how many participants have participated in the ongoing project. <br>
+ * 1.4.2.0: Added placeholder: "%RECORD%", which replaces how many projects were completed on the day where the most projects were completed. <br>
+ * 1.4.2.0: Added placeholder: "%PARTICIPANTS%", which replaces how many participants have participated in the ongoing project. <br>
  * 1.4.2: Added placeholder: "%PARTICIPANTSTODAY%", which replaces how many participants have participated today. <br>
  * 1.4.2: Added placeholder: "%PARTICIPANTSRECORD%", which replaces how many participants have contributed at most. <br>
  * 1.4.2.0: Added placeholder: "%LEFT%", which replaces the wheat that is left until the project is completed. <br> 
@@ -57,7 +57,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  * 1.4.2.0: Added config parameter "bake.general.doRecordSurpassBroadcast", by default set to true, if true, it will broadcast a message when the previous record was broken.<br>
  * 1.4.2.0: The Public int "BakeProgress" in class "Bake" is now a private int, if your plugin used the value, please change that <br>
  * 1.4.2.0: A broadcast will usually be done (if not disabled via setting) when the Record gets broken. <br>
- * 1.4.2: Added command: "/bakestats", which is just a bit like /bake, but has the intended use with statistics surrounding the bake project form all the way since 1.4.2.0 (or a newer version) was implemented on the server. <br>
+ * 1.4.2.0: Added command: "/bakestats", which is just a bit like /bake, but has the intended use with statistics surrounding the bake project form all the way since 1.4.2.0 (or a newer version) was implemented on the server. <br>
  * </li></ul>
  * 
  * @version 1.4.2.0
@@ -68,11 +68,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Bake extends JavaPlugin {
 
 	private int BakeProgress = 0; //The Progress of the project
+	private byte Participants = 0; //The Participants of the current project
+	private byte ParticipantsToday = 0; //The number of participants today
 	private short Today = 0; //The projects finished today
 	private short Times = 0; //The projects finished up to date
 	private short BestAmount = 0; //The most projects finished in a day
 	private Instant Last = Instant.EPOCH; //The last time a project was completed
 	private  HashMap<UUID, Boolean> Reminded= new HashMap<UUID, Boolean>(); //A HashMap that
+	private  HashMap<UUID, Boolean> RemindedDay = new HashMap<UUID, Boolean>(); //A HashMap that
 	
 	/**
 	 * Private Container for cached /bake messages.
@@ -193,7 +196,7 @@ public class Bake extends JavaPlugin {
 			// When players use /bake
 			getConfig().addDefault("bake.chat.progress2", ChatColor.AQUA + "========= Running Bake %VERSION%  ========== %NEWLINE% " + ChatColor.AQUA + "The Bake Progress is: %INTPROG% of %INTMAX% %NEWLINE% " + ChatColor.AQUA + "So we are %PERCENT% % done! Keep up! %NEWLINE%" + ChatColor.AQUA + " ========================================");
 			// When players use /bakestats
-			getConfig().addDefault("bake.chat.bakestats", "========= Running Bake %VERSION%  ========== %NEWLINE% The bake project was completed %TIMES% in total, the last time on %LAST%. %NEWLINE% The most projects were completed on %BESTDATE% with %RECORD% %NEWLINE% ========================================");
+			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "========= Running Bake %VERSION%  ========== %NEWLINE%" + ChatColor.AQUA + "The bake project was completed %TIMES% in total, the last time on %LAST%." + ChatColor.AQUA + " %NEWLINE% The most projects were completed on %BESTDATE% with %RECORD% %NEWLINE%" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated. With " + ChatColor.RED + "%PARTICIPATEDTODAY%" + ChatColor.AQUA + " participated today.%NEWLINE%" + ChatColor.AQUA + "========================================");
 			// when players use /contibute
 			getConfig().addDefault("bake.chat.contr2", "%INTPROG% was added to the project! Thanks!");
 			getConfig().addDefault("bake.chat.global.contr2",ChatColor.GOLD + "%PLAYER% has contributed %INTPROG% to the bake projects! We are now a bit closer to the rewards!");
@@ -212,6 +215,9 @@ public class Bake extends JavaPlugin {
 			getConfig().addDefault("bake.save.times", 0);
 			getConfig().addDefault("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH));
 			getConfig().addDefault("bake.save.today", 0);
+			getConfig().addDefault("bake.save.participants", 0);
+			getConfig().addDefault("bake.save.participantsToday", 0);
+			
 			
 			getConfig().options().copyDefaults(true);
 			saveConfig();
@@ -233,6 +239,8 @@ public class Bake extends JavaPlugin {
 			Today = (short) getConfig().getInt("bake.save.today", 0);
 		}
 		BestAmount = (short) getConfig().getInt("bake.save.record", 0);
+		Participants = (byte) getConfig().getInt("bake.save.participants", 0);
+		ParticipantsToday = (byte) getConfig().getInt("bake.save.participantsToday", 0);
 	}
 
 	@Override
@@ -255,6 +263,8 @@ public class Bake extends JavaPlugin {
 			getConfig().set("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Last));
 			getConfig().set("bake.save.today", Today);
 			getConfig().set("bake.save.record", BestAmount);
+			getConfig().addDefault("bake.save.participants", Participants);
+			getConfig().addDefault("bake.save.participantsToday", ParticipantsToday);
 			saveConfig();
 		}
 		
@@ -379,8 +389,14 @@ public class Bake extends JavaPlugin {
 				{
 					if (!Reminded.containsKey(player.getUniqueId())) 
 					{
-					//Player has not yet participated
-					Reminded.put(player.getUniqueId(), true);
+						//Player has not yet participated
+						Reminded.put(player.getUniqueId(), true);
+						Participants++;
+						if (!RemindedDay.containsKey(player.getUniqueId())) {
+							ParticipantsToday++;
+							RemindedDay.put(player.getUniqueId(), true);
+						} else {
+						}
 					}
 				}
 				
@@ -490,8 +506,10 @@ public class Bake extends JavaPlugin {
 							BestAmount = Today;
 						}
 						Today = 1;
+						ParticipantsToday = 0;
+						RemindedDay = new HashMap<UUID,Boolean>();
 					}
-					
+					Participants = 0;
 					Last = Instant.now();
 					saveValues();
 					
@@ -532,6 +550,8 @@ public class Bake extends JavaPlugin {
 													.withZone(ZoneId.systemDefault());
 		s = s.replaceAll("%LAST%", format.format(Last));
 		s = s.replaceAll("%RECORD%", String.valueOf(BestAmount));
+		s = s.replaceAll("%PARTICIPANTS%", String.valueOf(Participants));
+		s = s.replaceAll("%PARTICIPANTSTODAY%", String.valueOf(ParticipantsToday));
 		return s;
 	}
 }
