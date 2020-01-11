@@ -6,9 +6,9 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/EmericW/Desktop/Geolykt/mc/bukkit/api/spigot-api-1.13.2-R0.1-20190423.030901-214.jar" sourcepath="C:/Users/EmericW/Desktop/Geolykt/mc/bukkit/api/spigot-api-1.13.2-R0.1-20190423.030901-214-sources.jar">
+	<classpathentry kind="lib" path="/api/spigot-api-1.13.2-R0.1-20190423.030901-214.jar" sourcepath="C:/Users/EmericW/Desktop/Geolykt/mc/bukkit/api/spigot-api-1.13.2-R0.1-20190423.030901-214-sources.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/C:/Users/EmericW/Desktop/Geolykt/mc/bukkit/api/spigot-api-1.13.2-R0.1-20190423.030901-214-javadoc.jar!/"/>
+			<attribute name="javadoc_location" value="jar:file:/api/spigot-api-1.13.2-R0.1-20190423.030901-214-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
