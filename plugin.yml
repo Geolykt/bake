@@ -1,0 +1,32 @@
+name: bake
+main: de.geolykt.bake.Bake
+version: 1.5.0-NIGHTLY
+author: Geolykt
+api-version: 1.15
+website: www.geolykt.de
+commands:
+  bake:
+    description: Shows the progress of the bake and how much you need to contribute
+    usage: "Usage: /bake"
+    permission: bake.command.bake
+    permission-message: You have insufficent permissions, you need bake.command.bake for that command, contact a server administrator if you belive that this is an error
+  contribute:
+    description: Contribute some wheat to the bake project
+    usage: "Usage: /contribute [number]"
+    permission: bake.command.contribute
+    permission-message: You have insufficent permissions, you need bake.command.contribute for that command, contact a server administrator if you belive that this is an error
+  bakestats:
+    description: has the intended use for statistics surrounding the bake project
+    usage: "Usage: /bakestats"
+    permission: bake.command.stats
+    permission-message: You have insufficent permissions, you need bake.command.stats for that command, contact a server administrator if you belive that this is an error
+permissions:
+  bake.command.bake:
+    description: allows the /bake command
+    default: true
+  bake.command.contribute:
+    description: allows the /contribute command
+    default: true
+  bake.command.stats:
+    description: allows the /bakestats command
+    default: true
