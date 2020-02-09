@@ -1,7 +1,5 @@
 package de.geolykt.bake;
 
-import de.geolykt.bake.Bake_Auxillary;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -157,19 +155,19 @@ public class Bake extends JavaPlugin {
 			// 1.4.1's %NEWLINE% is no longer supported in newer versions
 			if (getConfig().getInt("bake.general.slots", -1) < 4) {
 				String s = getConfig().getString("bake.chat.progress2", "");
-				s.replaceAll("%NEWLINE%", "\n");
+				s.replaceAll("\\%NEWLINE\\%", "\n");
 				getConfig().addDefault("bake.chat.progress2", s);
 				
 				s = getConfig().getString("bake.chat.contr2", "");
-				s.replaceAll("%NEWLINE%", "\n");
+				s.replaceAll("\\%NEWLINE\\%", "\n");
 				getConfig().addDefault("bake.chat.contr2", s);
 				
 				s = getConfig().getString("bake.chat.global.contr2", "");
-				s.replaceAll("%NEWLINE%", "\n");
+				s.replaceAll("\\%NEWLINE\\%", "\n");
 				getConfig().addDefault("bake.chat.global.contr2", s);
 				
 				s = getConfig().getString("bake.chat.finish2", "");
-				s.replaceAll("%NEWLINE%", "\n");
+				s.replaceAll("\\%NEWLINE\\%", "\n");
 				getConfig().addDefault("bake.chat.finish2", s);
 				
 			}
@@ -215,9 +213,9 @@ public class Bake extends JavaPlugin {
 			getConfig().addDefault("bake.general.doRecordSurpassBroadcast", true);
 			getConfig().addDefault("bake.chat.recordSurpassBroadcast", ChatColor.GOLD + "The previous record of %RECORD% on the %BESTDATE% was broken by the new record of %TODAY%!");
 			// When players use /bake
-			getConfig().addDefault("bake.chat.progress2", ChatColor.AQUA + "========= Running Bake %VERSION%  ========== %NEWLINE% " + ChatColor.AQUA + "The Bake Progress is: %INTPROG% of %INTMAX% %NEWLINE% T \n x \n T " + ChatColor.AQUA + "So we are %PERCENT% % done! Keep up! %NEWLINE%" + ChatColor.AQUA + " ========================================");
+			getConfig().addDefault("bake.chat.progress2", ChatColor.AQUA + "========= Running Bake %VERSION%  ========== \n " + ChatColor.AQUA + "The Bake Progress is: %INTPROG% of %INTMAX% \n " + ChatColor.AQUA + "So we are %PERCENT% % done! Keep up! \n" + ChatColor.AQUA + " ========================================");
 			// When players use /bakestats
-			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "========= Running Bake %VERSION%  ========== %NEWLINE%" + ChatColor.AQUA + "The bake project was completed %TIMES% times in total, the last time on %LAST%." + ChatColor.AQUA + " %NEWLINE% The most projects were completed on %BESTDATE% with %RECORD% times. %NEWLINE%" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated. With " + ChatColor.RED + "%PARTICIPATEDTODAY%" + ChatColor.AQUA + " participated today.%NEWLINE%" + ChatColor.AQUA + "========================================");
+			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "========= Running Bake %VERSION%  ========== \n" + ChatColor.AQUA + "The bake project was completed %TIMES% times in total, the last time on %LAST%." + ChatColor.AQUA + " \n The most projects were completed on %BESTDATE% with %RECORD% times. \n" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated. With " + ChatColor.RED + "%PARTICIPATEDTODAY%" + ChatColor.AQUA + " participated today.\n" + ChatColor.AQUA + "========================================");
 			// when players use /contibute
 			getConfig().addDefault("bake.chat.contr2", "%INTPROG% was added to the project! Thanks!");
 			getConfig().addDefault("bake.chat.global.contr2",ChatColor.GOLD + "%PLAYER% has contributed %INTPROG% to the bake projects! We are now a bit closer to the rewards!");
@@ -302,10 +300,9 @@ public class Bake extends JavaPlugin {
 			
 
 		    msgStats = replaceAdvanced(getConfig().getString("bake.chat.bakestats", "ERROR"));
-			for (String s : msgStats.split("%NEWLINE%")) {
-				s = Bake_Auxillary.ReplacePlaceHolders(s, progress, getConfig().getInt("bake.wheat_Required"), progressPercent, "ERROR");
-				sender.sendMessage(s);
-			}
+		    String s = msgStats;
+			s = Bake_Auxillary.ReplacePlaceHolders(s, progress, getConfig().getInt("bake.wheat_Required"), progressPercent, "ERROR");
+			sender.sendMessage(s);
 			
 			return true;
 		} else if (cmd.getName().equalsIgnoreCase("bake")) 
@@ -316,10 +313,9 @@ public class Bake extends JavaPlugin {
 			
 
 		    msgProg = replaceAdvanced(getConfig().getString("bake.chat.progress2", "ERROR"));
-			for (String s : msgProg.split("%NEWLINE%")) {
-				s = Bake_Auxillary.ReplacePlaceHolders(s, progress, getConfig().getInt("bake.wheat_Required"), progressPercent, "ERROR");
-				sender.sendMessage(s);
-			}
+		    String s = msgProg;
+			s = Bake_Auxillary.ReplacePlaceHolders(s, progress, getConfig().getInt("bake.wheat_Required"), progressPercent, "ERROR");
+			sender.sendMessage(s);
 			return true;
 			
 		} else if (cmd.getName().equalsIgnoreCase("contribute")) 
@@ -478,9 +474,18 @@ public class Bake extends JavaPlugin {
 									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
 								}
 							}
-							
-							items.addUnsafeEnchantments(enchantments);
-							enchantments.clear();
+							if (!enchantments.isEmpty()) { //check wether there is a need to apply enchantments, this may solve some issues with unenchanted items
+								try {
+									items.addUnsafeEnchantments(enchantments);
+								} catch (NullPointerException e) {
+									if (Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])<13) {
+										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.12, because default values will always be faulty for 1.12, check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
+									} else {
+										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
+									}
+								}
+								enchantments.clear();
+							}
 							//send item to the players
 							for (Player players : getServer().getOnlinePlayers()) {
 								if (players.getInventory().firstEmpty() == -1) {

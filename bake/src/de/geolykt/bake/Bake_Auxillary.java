@@ -9,7 +9,7 @@ package de.geolykt.bake;
  */
 public class Bake_Auxillary {
 
-	private static final String PLUGIN_VERSION = "1.4.2.0-Nightly"; 
+	private static final String PLUGIN_VERSION = "1.5.0"; 
 	/**
 	 * This function is in place to make it more easy for the plugin to parse the config file from an older version (config version 2) to a newer (config version 3+).
 	 * 
@@ -18,11 +18,14 @@ public class Bake_Auxillary {
 	 * @since 1.4.1
 	 */
 	public static String NewConfig (String str) {
+		// pre-1.4.1 -> post 1.4.0
 		str = str.replaceAll("&VERSION;", "%VERSION%");
 		str = str.replaceAll("&INTPROG;", "%INTPROG%");
 		str = str.replaceAll("&PERCENT;", "%PERCENT%");
 		str = str.replaceAll("&PLAYER;", "%PLAYER%");
 		str = str.replaceAll("&INTMAX;", "%INTMAX%");
+		// 1.4.1 -> post 1.4.1
+		str = str.replaceAll("\\%NEWLINE\\%", "\n");
 		return str;
 	}
 	
@@ -53,7 +56,7 @@ public class Bake_Auxillary {
 	 * 
 	 * @param s Array of strings to be looked for
 	 * @return The length of the longest String in the array
-	 * @since 1.4.2
+	 * @since 1.5.0
 	 */
 	public static int getLongest (String [] s) {
 		int i = 0;
