@@ -43,6 +43,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  * 1.5.0: Added placeholder: "%LEFT%", which replaces the wheat that is left until the project is completed. <br> 
  * 1.5.0: Added placeholder: "%LAST%", which replaces the time and date when the last project got finished. <br>
  * 1.5.0: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
+ * 1.5.0: Added placeholder: "%RECORDDATE%", which replaces the date where the most records were done. <br>
  * 1.5.0: Added config parameter "bake.general.cnfgStore", if set to true, the plugin is allowed to store values inside the config (ignoring noMeddle) else some functions might not work properly. Note: the plugin will use it anyway, but it will not set default values. It might gain more meaning in future updates<br>
  * 1.5.0: Added config parameter "bake.general.doRecordSurpassBroadcast", by default set to true, if true, it will broadcast a message when the previous record was broken.<br>
  * 1.5.0: The Public int "BakeProgress" in class "Bake" is now a private int, if your plugin used the value, please change that <br>
@@ -72,6 +73,7 @@ public class Bake extends JavaPlugin {
 	private short Times = 0; //The projects finished up to date
 	private short BestAmount = 0; //The most projects finished in a day
 	private Instant Last = Instant.EPOCH; //The last time a project was completed
+	private Instant Record = Instant.EPOCH; //The day the most projects were finished
 	private  HashMap<UUID, Boolean> Reminded= new HashMap<UUID, Boolean>(); //A HashMap that
 	private  HashMap<UUID, Boolean> RemindedDay = new HashMap<UUID, Boolean>(); //A HashMap that
 	
@@ -217,7 +219,7 @@ public class Bake extends JavaPlugin {
 			// When players use /bake
 			getConfig().addDefault("bake.chat.progress2", ChatColor.AQUA + "========= Running Bake %VERSION%  ========== \n " + ChatColor.AQUA + "The Bake Progress is: %INTPROG% of %INTMAX% \n " + ChatColor.AQUA + "So we are %PERCENT% % done! Keep up! \n" + ChatColor.AQUA + " ========================================");
 			// When players use /bakestats
-			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "========= Running Bake %VERSION%  ========== \n" + ChatColor.AQUA + "The bake project was completed %TIMES% times in total, the last time on %LAST%." + ChatColor.AQUA + " \n The most projects were completed on %BESTDATE% with %RECORD% times. \n" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated. With " + ChatColor.RED + "%PARTICIPATEDTODAY%" + ChatColor.AQUA + " participated today.\n" + ChatColor.AQUA + "========================================");
+			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "The bake project was completed %TIMES% times in total, the last time on %LAST%." + ChatColor.AQUA + " \n The most projects were completed on %BESTDATE% with %RECORD% times. \n" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated.\n" + ChatColor.AQUA + "========================================");
 			// when players use /contibute
 			getConfig().addDefault("bake.chat.contr2", "%INTPROG% was added to the project! Thanks!");
 			getConfig().addDefault("bake.chat.global.contr2",ChatColor.GOLD + "%PLAYER% has contributed %INTPROG% to the bake projects! We are now a bit closer to the rewards!");
@@ -235,6 +237,8 @@ public class Bake extends JavaPlugin {
 			readValues();
 			getConfig().addDefault("bake.save.times", 0);
 			getConfig().addDefault("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH));
+			getConfig().addDefault("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH));
+			getConfig().addDefault("bake.save.record", 0);
 			getConfig().addDefault("bake.save.today", 0);
 			getConfig().addDefault("bake.save.participants", 0);
 			getConfig().addDefault("bake.save.participantsToday", 0);
@@ -262,6 +266,7 @@ public class Bake extends JavaPlugin {
 		BestAmount = (short) getConfig().getInt("bake.save.record", 0);
 		Participants = (byte) getConfig().getInt("bake.save.participants", 0);
 		ParticipantsToday = (byte) getConfig().getInt("bake.save.participantsToday", 0);
+		Record = Instant.parse(getConfig().getString("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH)));
 	}
 
 	@Override
@@ -517,7 +522,7 @@ public class Bake extends JavaPlugin {
 					Times++;
 					
 					DateTimeFormatter format = DateTimeFormatter.ISO_LOCAL_DATE.withLocale(Locale.UK)
-							.withZone(ZoneId.systemDefault());
+							                                                   .withZone(ZoneId.systemDefault());
 					//If the two ISO Local Dates are the same, then the amount of projects is increased, otherwise it will be reset to 1 (since the project got completed)
 					if (format.format(Last).equals(format.format(Instant.now()))) {
 						//same date
@@ -526,7 +531,8 @@ public class Bake extends JavaPlugin {
 						//different date. If the record is lower than what was archived the day before, then the record gets overridden with the amount of stuff done the day before
 						if (Today > BestAmount) {
 							if (getConfig().getBoolean("bake.general.doRecordSurpassBroadcast", true)) {
-								this.getServer().broadcastMessage(Bake_Auxillary.ReplacePlaceHolders(replaceAdvanced(getConfig().getString("bake.chat.recordSurpassBroadcast", "ERROR")), Integer.parseInt(args[0]), getConfig().getInt("bake.wheat_Required"), -1, player.getDisplayName()));
+								this.getServer().broadcastMessage(Bake_Auxillary.ReplacePlaceHolders(replaceAdvanced(getConfig().getString("bake.chat.recordSurpassBroadcast", "ERROR: You should restart the server.")), Integer.parseInt(args[0]), getConfig().getInt("bake.wheat_Required"), -1, player.getDisplayName()));
+								this.Record = Instant.now();
 							}
 							BestAmount = Today;
 						}
@@ -574,6 +580,9 @@ public class Bake extends JavaPlugin {
 		DateTimeFormatter format = DateTimeFormatter.RFC_1123_DATE_TIME.withLocale(Locale.UK)
 													.withZone(ZoneId.systemDefault());
 		s = s.replaceAll("%LAST%", format.format(Last));
+		format = DateTimeFormatter.ISO_LOCAL_DATE.withLocale(Locale.UK)
+				                                 .withZone(ZoneId.systemDefault());
+		s = s.replaceAll("%RECORDDATE%", format.format(Record));
 		s = s.replaceAll("%RECORD%", String.valueOf(BestAmount));
 		s = s.replaceAll("%PARTICIPANTS%", String.valueOf(Participants));
 		s = s.replaceAll("%PARTICIPANTSTODAY%", String.valueOf(ParticipantsToday));
