@@ -474,10 +474,10 @@ public class Bake extends JavaPlugin {
 									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
 								}
 							}
-							if (!enchantments.isEmpty()) { //check wether there is a need to apply enchantments, this may solve some issues with unenchanted items
+							if (!enchantments.isEmpty()) { //check whether there is a need to apply enchantments, this may solve some issues with unenchanted items
 								try {
 									items.addUnsafeEnchantments(enchantments);
-								} catch (NullPointerException e) {
+								} catch (IllegalArgumentException e) {
 									if (Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])<13) {
 										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.12, because default values will always be faulty for 1.12, check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
 									} else {
