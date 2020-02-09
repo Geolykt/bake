@@ -158,20 +158,20 @@ public class Bake extends JavaPlugin {
 				
 				String s = getConfig().getString("bake.chat.progress2", "");
 				s = s.replaceAll("%NEWLINE%", "\n");
-				getConfig().addDefault("bake.chat.progress2", s);
+				getConfig().set("bake.chat.progress2", s);
 				
 				s = getConfig().getString("bake.chat.contr2", "");
 				s = s.replaceAll("%NEWLINE%", "\n");
-				getConfig().addDefault("bake.chat.contr2", s);
+				getConfig().set("bake.chat.contr2", s);
 				
 				s = getConfig().getString("bake.chat.global.contr2", "");
 				s = s.replaceAll("%NEWLINE%", "\n");
-				getConfig().addDefault("bake.chat.global.contr2", s);
+				getConfig().set("bake.chat.global.contr2", s);
 				
 				s = getConfig().getString("bake.chat.finish2", "");
 				s = s.replaceAll("%NEWLINE%", "\n");
-				getConfig().addDefault("bake.chat.finish2", s);
-				
+				getConfig().set("bake.chat.finish2", s);
+				saveConfig();
 			}
 			
 			
