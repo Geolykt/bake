@@ -157,43 +157,19 @@ public class Bake extends JavaPlugin {
 				getLogger().info("Updating from the 1.4.1 config version (version 3) to the 1.5.0 config version (version 4). You may need to restart the server for it to take effect."); 
 				
 				String s = getConfig().getString("bake.chat.progress2", "");
-				if (s.contains("%NEWLINE%")) {
-					getLogger().warning("Unsupported placeholder: the \"%NEWLINE%\"-placeholder no longer functions as of 1.5.0, use \"\\n\" instead. Updating has proven to be impossible automatically during tests. Will attempt to do it anyway");
-				}
-				s.replaceAll("%NEWLINE%", "\n");
-				if (s.contains("%NEWLINE%")) {
-					getLogger().severe("Failed updating as expected. Please update the config file manually!");
-				}
+				s = s.replaceAll("%NEWLINE%", "\n");
 				getConfig().addDefault("bake.chat.progress2", s);
 				
 				s = getConfig().getString("bake.chat.contr2", "");
-				if (s.contains("%NEWLINE%")) {
-					getLogger().warning("Unsupported placeholder: the \"%NEWLINE%\"-placeholder no longer functions as of 1.5.0, use \"\\n\" instead. Updating has proven to be impossible automatically during tests. Will attempt to do it anyway");
-				}
-				s.replaceAll("%NEWLINE%", "\n");
-				if (s.contains("%NEWLINE%")) {
-					getLogger().severe("Failed updating as expected. Please update the config file manually!");
-				}
+				s = s.replaceAll("%NEWLINE%", "\n");
 				getConfig().addDefault("bake.chat.contr2", s);
 				
 				s = getConfig().getString("bake.chat.global.contr2", "");
-				if (s.contains("%NEWLINE%")) {
-					getLogger().warning("Unsupported placeholder: the \"%NEWLINE%\"-placeholder no longer functions as of 1.5.0, use \"\\n\" instead. Updating has proven to be impossible automatically during tests. Will attempt to do it anyway");
-				}
-				s.replaceAll("%NEWLINE%", "\n");
-				if (s.contains("%NEWLINE%")) {
-					getLogger().severe("Failed updating as expected. Please update the config file manually!");
-				}
+				s = s.replaceAll("%NEWLINE%", "\n");
 				getConfig().addDefault("bake.chat.global.contr2", s);
 				
 				s = getConfig().getString("bake.chat.finish2", "");
-				if (s.contains("%NEWLINE%")) {
-					getLogger().warning("Unsupported placeholder: the \"%NEWLINE%\"-placeholder no longer functions as of 1.5.0, use \"\\n\" instead. Updating has proven to be impossible automatically during tests. Will attempt to do it anyway");
-				}
-				s.replaceAll("%NEWLINE%", "\n");
-				if (s.contains("%NEWLINE%")) {
-					getLogger().severe("Failed updating as expected. Please update the config file manually!");
-				}
+				s = s.replaceAll("%NEWLINE%", "\n");
 				getConfig().addDefault("bake.chat.finish2", s);
 				
 			}
