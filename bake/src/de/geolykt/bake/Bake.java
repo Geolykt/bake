@@ -42,13 +42,13 @@ import org.bukkit.plugin.java.JavaPlugin;
  * 1.5.0: Added placeholder: "%PARTICIPANTS%", which replaces how many participants have participated in the ongoing project. <br>
  * 1.5.0: Added placeholder: "%LEFT%", which replaces the wheat that is left until the project is completed. <br> 
  * 1.5.0: Added placeholder: "%LAST%", which replaces the time and date when the last project got finished. <br>
- * 1.5.0: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * 1.5.0: Added placeholder: "%RECORDDATE%", which replaces the date where the most records were done. <br>
  * 1.5.0: Added config parameter "bake.general.cnfgStore", if set to true, the plugin is allowed to store values inside the config (ignoring noMeddle) else some functions might not work properly. Note: the plugin will use it anyway, but it will not set default values. It might gain more meaning in future updates<br>
  * 1.5.0: Added config parameter "bake.general.doRecordSurpassBroadcast", by default set to true, if true, it will broadcast a message when the previous record was broken.<br>
  * 1.5.0: The Public int "BakeProgress" in class "Bake" is now a private int, if your plugin used the value, please change that <br>
  * 1.5.0: A broadcast will usually be done (if not disabled via setting) when the Record gets broken. <br>
  * 1.5.0: Added command: "/bakestats", which is just a bit like /bake, but has the intended use with statistics surrounding the bake project form all the way since 1.5.0 (or a newer version) was implemented on the server. <br>
+ * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
  * ?: Added placeholder: "%BESTSTAT%", which replaces the top amount contributed by a player over the lifetime of the server <br>
@@ -215,11 +215,11 @@ public class Bake extends JavaPlugin {
 			// CHAT
 			//record surpass broadcast
 			getConfig().addDefault("bake.general.doRecordSurpassBroadcast", true);
-			getConfig().addDefault("bake.chat.recordSurpassBroadcast", ChatColor.GOLD + "The previous record of %RECORD% on the %BESTDATE% was broken by the new record of %TODAY%!");
+			getConfig().addDefault("bake.chat.recordSurpassBroadcast", ChatColor.GOLD + "The previous record of %RECORD% on the %RECORDDATE% was broken by the new record of %TODAY%!");
 			// When players use /bake
-			getConfig().addDefault("bake.chat.progress2", ChatColor.AQUA + "========= Running Bake %VERSION%  ========== \n " + ChatColor.AQUA + "The Bake Progress is: %INTPROG% of %INTMAX% \n " + ChatColor.AQUA + "So we are %PERCENT% % done! Keep up! \n" + ChatColor.AQUA + " ========================================");
+			getConfig().addDefault("bake.chat.progress2", ChatColor.AQUA + "=========== Running Bake %VERSION%  ============ \n " + ChatColor.AQUA + "The Bake Progress is: %INTPROG% of %INTMAX% \n " + ChatColor.AQUA + "So we are %PERCENT% % done! Keep up! \n" + ChatColor.AQUA + " =======================================");
 			// When players use /bakestats
-			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "The bake project was completed %TIMES% times in total, the last time on %LAST%." + ChatColor.AQUA + " \n The most projects were completed on %BESTDATE% with %RECORD% times. \n" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated.\n" + ChatColor.AQUA + "========================================");
+			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "========================================" + "The bake project was completed %TIMES% times in total, the last time on %LAST%." + ChatColor.AQUA + " \n The most projects were completed on %RECORDDATE% with %RECORD% times. \n" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated in the recent project.\n" + ChatColor.AQUA + "========================================");
 			// when players use /contibute
 			getConfig().addDefault("bake.chat.contr2", "%INTPROG% was added to the project! Thanks!");
 			getConfig().addDefault("bake.chat.global.contr2",ChatColor.GOLD + "%PLAYER% has contributed %INTPROG% to the bake projects! We are now a bit closer to the rewards!");
@@ -486,7 +486,7 @@ public class Bake extends JavaPlugin {
 									items.addUnsafeEnchantments(enchantments);
 								} catch (IllegalArgumentException e) {
 									if (Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])<13) {
-										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.12, because default values will always be faulty for 1.12, check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
+										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
 									} else {
 										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
 									}
