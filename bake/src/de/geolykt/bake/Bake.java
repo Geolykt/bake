@@ -155,7 +155,7 @@ public class Bake extends JavaPlugin {
 			}
 		
 			// 1.4.1's %NEWLINE% is no longer supported in newer versions
-			if (getConfig().getInt("bake.general.slots", -1) > 4) {
+			if (getConfig().getInt("bake.general.configVersion", -1) > 4) {
 				getLogger().info("Updating from the 1.4.1 config version (version 3) to the 1.5.0 config version (version 4). You may need to restart the server for it to take effect."); 
 				
 				String s = getConfig().getString("bake.chat.progress2", "");
@@ -219,7 +219,7 @@ public class Bake extends JavaPlugin {
 			// When players use /bake
 			getConfig().addDefault("bake.chat.progress2", ChatColor.AQUA + "=========== Running Bake %VERSION%  ============ \n " + ChatColor.AQUA + "The Bake Progress is: %INTPROG% of %INTMAX% \n " + ChatColor.AQUA + "So we are %PERCENT% % done! Keep up! \n" + ChatColor.AQUA + " =======================================");
 			// When players use /bakestats
-			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "========================================" + "The bake project was completed %TIMES% times in total, the last time on %LAST%." + ChatColor.AQUA + " \n The most projects were completed on %RECORDDATE% with %RECORD% times. \n" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated in the recent project.\n" + ChatColor.AQUA + "========================================");
+			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "========================================\n The bake project was completed %TIMES% times in total, the last time on %LAST%." + ChatColor.AQUA + " \n The most projects were completed on %RECORDDATE% with %RECORD% times. \n" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated in the recent project.\n" + ChatColor.AQUA + "========================================");
 			// when players use /contibute
 			getConfig().addDefault("bake.chat.contr2", "%INTPROG% was added to the project! Thanks!");
 			getConfig().addDefault("bake.chat.global.contr2",ChatColor.GOLD + "%PLAYER% has contributed %INTPROG% to the bake projects! We are now a bit closer to the rewards!");
@@ -296,7 +296,6 @@ public class Bake extends JavaPlugin {
 		
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("bakestats")) 
@@ -484,9 +483,15 @@ public class Bake extends JavaPlugin {
 							if (!enchantments.isEmpty()) { //check whether there is a need to apply enchantments, this may solve some issues with unenchanted items
 								try {
 									items.addUnsafeEnchantments(enchantments);
-								} catch (IllegalArgumentException e) {
+								} catch (NullPointerException e) { //For 1.8
 									if (Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])<13) {
-										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
+										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.8 - 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
+									} else {
+										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
+									}
+								}catch (IllegalArgumentException e) {
+									if (Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])<13) {
+										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.8 - 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
 									} else {
 										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
 									}
@@ -502,10 +507,18 @@ public class Bake extends JavaPlugin {
 								if (getConfig().getBoolean("bake.general.remember")) {
 									//Check whether player has yet contributed
 									if (Reminded.getOrDefault(players.getUniqueId(), false)) {
-										players.getInventory().setItem(players.getInventory().firstEmpty(),items);
+										try {
+											players.getInventory().setItem(players.getInventory().firstEmpty(),items);
+										} catch (ArrayIndexOutOfBoundsException e) {
+											//In case the player has full inventory
+										}
 									}
 								} else {
-									players.getInventory().setItem(players.getInventory().firstEmpty(),items);
+									try {
+										players.getInventory().setItem(players.getInventory().firstEmpty(),items);
+									} catch (ArrayIndexOutOfBoundsException e) {
+										//In case the player has full inventory
+									}
 								}
 							
 							}
