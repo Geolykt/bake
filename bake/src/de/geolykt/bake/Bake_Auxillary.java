@@ -9,7 +9,7 @@ package de.geolykt.bake;
  */
 public class Bake_Auxillary {
 
-	private static final String PLUGIN_VERSION = "1.5.0"; 
+	private static final String PLUGIN_VERSION = "1.5.1"; 
 	/**
 	 * This function is in place to make it more easy for the plugin to parse the config file from an older version (config version 2) to a newer (config version 3+).
 	 * 
@@ -25,7 +25,7 @@ public class Bake_Auxillary {
 		str = str.replaceAll("&PLAYER;", "%PLAYER%");
 		str = str.replaceAll("&INTMAX;", "%INTMAX%");
 		// 1.4.1 -> post 1.4.1
-		str = str.replaceAll("\\%NEWLINE\\%", "\n");
+		str = str.replaceAll("%NEWLINE%", "\n");
 		return str;
 	}
 	

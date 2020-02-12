@@ -1,6 +1,6 @@
 name: bake
 main: de.geolykt.bake.Bake
-version: 1.5.0-NIGHTLY
+version: 1.5.1-NIGHTLY
 author: Geolykt
 api-version: 1.15
 website: www.geolykt.de

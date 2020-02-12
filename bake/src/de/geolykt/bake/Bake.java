@@ -59,7 +59,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  * ?: Added config parameter "bake.general.permremember", if set to true, the plugin will store ALL contributors and the amount they have contributed in a flat file<br>
  * </li></ul>
  * 
- * @version 1.5.0
+ * @version 1.5.1
  * @author Geolykt
  * @since 0.0.1 - SNAPSHOT
  *
