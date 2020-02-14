@@ -25,13 +25,6 @@ import org.bukkit.plugin.java.JavaPlugin;
  * The main operating class
  * Almost all functions are called in here 
  * <ul><li>
- * 1.4.0: Reworked perms <br>
- * 1.4.0: Reworked standard loot. <br>
- * 1.4.0: Reworked Commands Usage. <br>
- * 1.4.0: Added possibility to only reward those who have contributed (active by default). <br>
- * 1.4.0: Added possibility to add lores <br>
- * 1.4.0: Added possibility to add enchantments <br>
- * 1.4.0: Added possibility to change the display name <br></li><li>
  * 1.4.1: Merged bake spigot 1.13/1.14 and spigot 1.12 versions (compatible with 1.12 AND 1.13/1.14)<br>
  * 1.4.1: Added config version<br>
  * 1.4.1: Changed the way the chat config system works, it has now an entire config line allocated for multiple ingame lines. <br>
@@ -78,6 +71,12 @@ public class Bake extends JavaPlugin {
 	private  HashMap<UUID, Boolean> RemindedDay = new HashMap<UUID, Boolean>(); //A HashMap that
 	
 	/**
+	 * API LEVEL for the bukkit server, not the plugin itself, you need that one, use the Bake Auxillary instead!
+	 * @since 1.5.1
+	 */
+	private int API_LEVEL;
+	
+	/**
 	 * Private Container for cached /bake messages.
 	 * @since 1.5.0
 	 */
@@ -106,6 +105,10 @@ public class Bake extends JavaPlugin {
 	
 	@Override
 	public void onEnable () {
+
+		//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
+		API_LEVEL = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
+		
 		
 		if (!getConfig().getBoolean("bake.general.noMeddle", false)) {
 		
@@ -430,9 +433,9 @@ public class Bake extends JavaPlugin {
 					getServer().broadcastMessage(s);
 					ItemStack items;
 					int reward_count = 0;
+					
+					
 					//Item reward process
-					
-					
 					for (int i = 0; i < getConfig().getInt("bake.general.slots", 0); i++) {
 						
 						if ((Math.random() < getConfig().getDouble("bake.chances.slot." + i)) && (getConfig().getInt("bake.award.maximum")) > reward_count) {
@@ -449,9 +452,11 @@ public class Bake extends JavaPlugin {
 								itemM.setLore(l);
 							}
 							l.clear();
+							
 							itemM.setDisplayName(getConfig().getString("bake.name.slot." + i, getConfig().getString("bake.award.slot." + i, "AIR")));
 							items.setItemMeta(itemM);
 
+							
 							//Enchantment
 							HashMap<Enchantment,Integer> enchantments = new HashMap<Enchantment, Integer>(); 
 							for (String string : getConfig().getString("bake.enchantment.slot." + i, "NIL").split("\\|")) {
@@ -463,16 +468,31 @@ public class Bake extends JavaPlugin {
 								}
 								// Source for errors: Enchantment.getByKey only exists in spigot API level 13 or higher, but not in spigot API level 12 or lower!
 								// So the code will check which version the server is running on and then uses the appropriate function, this is doable as Java allows the use of invalid functions within the sourcecode as long as they don't get called.
-								
-								//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
-								int APILevel = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
 								try { //prevent stupidity of the server owner
 									//API 13+
-									if (APILevel >= 13) {
+									if (API_LEVEL >= 13) {
 										enchantments.put(Enchantment.getByKey(NamespacedKey.minecraft(string.split("@")[0])), Integer.valueOf(string.split("@")[1]));
-									} else if (APILevel <= 12) {//API 12 or lower (some levels might  still not work though)
+									} else if (API_LEVEL == 12) {//API 12
 										//This is deprecated for Bukkit 1.13 or higher, but since it doesn't get called on these versions, it is fine
 										enchantments.put(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]));
+									}
+									
+									//1.12 and above -> enchantment as usual
+									if (API_LEVEL >= 12) {//API 12 or higher
+										try {
+											items.addUnsafeEnchantments(enchantments);
+										} catch (IllegalArgumentException e) {
+											if (API_LEVEL <= 12) {
+												this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
+											} else {
+												this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
+											}
+										}
+										enchantments.clear();
+									//1.11 and below -> enchantment via metadata
+									} else if (API_LEVEL <= 11) { //API 11 or lower
+										itemM.addEnchant(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]), false);
+										
 									}
 								} catch (NullPointerException e) {
 									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
@@ -480,42 +500,34 @@ public class Bake extends JavaPlugin {
 									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
 								}
 							}
-							if (!enchantments.isEmpty()) { //check whether there is a need to apply enchantments, this may solve some issues with unenchanted items
-								try {
-									items.addUnsafeEnchantments(enchantments);
-								} catch (NullPointerException e) { //For 1.8
-									if (Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])<13) {
-										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.8 - 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
-									} else {
-										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
-									}
-								}catch (IllegalArgumentException e) {
-									if (Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])<13) {
-										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.8 - 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
-									} else {
-										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
-									}
-								}
-								enchantments.clear();
+							if (API_LEVEL <= 11) {
+								items.setItemMeta(itemM);
 							}
+							
 							//send item to the players
 							for (Player players : getServer().getOnlinePlayers()) {
 								if (players.getInventory().firstEmpty() == -1) {
 									continue;
 								}
+								
+								
+								getLogger().info(items.getEnchantments() + "");
+								
 								//Server uses setting?
 								if (getConfig().getBoolean("bake.general.remember")) {
 									//Check whether player has yet contributed
 									if (Reminded.getOrDefault(players.getUniqueId(), false)) {
 										try {
-											players.getInventory().setItem(players.getInventory().firstEmpty(),items);
+											players.getInventory().addItem(items);
+//											players.getInventory().setItem(players.getInventory().firstEmpty(),items);
 										} catch (ArrayIndexOutOfBoundsException e) {
 											//In case the player has full inventory
 										}
 									}
 								} else {
 									try {
-										players.getInventory().setItem(players.getInventory().firstEmpty(),items);
+										players.getInventory().addItem(items);
+//										players.getInventory().setItem(players.getInventory().firstEmpty(),items);
 									} catch (ArrayIndexOutOfBoundsException e) {
 										//In case the player has full inventory
 									}
