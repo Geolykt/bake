@@ -495,8 +495,10 @@ public class Bake extends JavaPlugin {
 										
 									}
 								} catch (NullPointerException e) {
+									getLogger().severe("Error while enchanting item: NullPointerException: it is recommended to use 1.12 enchant strings, not the 1.13 ones (default values)! If the error persists, create an issue on github or dev.bukkit.org");
 									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
 								} catch (java.lang.IllegalArgumentException e) {
+									getLogger().severe("Error while enchanting item: IllegalArgumentException: it is recommended to use 1.12 enchant strings, not the 1.13 ones (default values)! If the error persists, create an issue on github or dev.bukkit.org");
 									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
 								}
 							}
