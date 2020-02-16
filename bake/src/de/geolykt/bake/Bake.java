@@ -110,6 +110,10 @@ public class Bake extends JavaPlugin {
 	
 	@Override
 	public void onEnable () {
+		// Configuration initialization
+		
+		saveDefaultConfig();
+//		reloadConfig();
 		
 		//Contact bakeMetrics
 		getLogger().fine("Metrics init");
@@ -129,6 +133,7 @@ public class Bake extends JavaPlugin {
 						URI metricsServerURI = new URI("https://geolykt.de/src/bake/bakeMetrics.php?version=" + Bake_Auxillary.PLUGIN_VERSION_ID);
 						URLConnection metricsServer = metricsServerURI.toURL().openConnection();
 						metricsServer.connect();
+						metricsServer.getInputStream().close();
 					} catch (URISyntaxException | IOException e) {
 						getLogger().info("An error occured while trying to send data to the metrics server. Ignoring."); // Would be strange, but don't panic
 					}
@@ -142,9 +147,6 @@ public class Bake extends JavaPlugin {
 		
 		
 		if (!getConfig().getBoolean("bake.general.noMeddle", false)) {
-		
-			getConfig().addDefault("bake.general.configVersion", 4);
-			
 		
 			// Config Convert Process
 			if (getConfig().getInt("bake.general.configVersion", -1) > 4) {
@@ -174,63 +176,6 @@ public class Bake extends JavaPlugin {
 				getConfig().set("bake.chat.finish2", s);
 				saveConfig();
 			}
-			
-			
-			//General Stuff
-			getConfig().addDefault("bake.wheat_Required", 1000);
-			getConfig().addDefault("bake.general.slots", 5);
-			getConfig().addDefault("bake.general.remember", true);
-			getConfig().addDefault("bake.general.deleteRemembered", true);
-			getConfig().addDefault("bake.general.noMeddle", false);
-			getConfig().addDefault("bake.general.cnfgStore", true);
-		
-			//Metrics
-			getConfig().addDefault("bake.metrics.opt-out", false);
-			
-			getConfig().addDefault("bake.award.maximum", 3);
-			//Loot
-			getConfig().addDefault("bake.award.slot.0", "DIAMOND");
-			getConfig().addDefault("bake.chances.slot.0", 0.5);
-			getConfig().addDefault("bake.amount.slot.0", 2);
-			getConfig().addDefault("bake.lore.slot.0", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
-			getConfig().addDefault("bake.name.slot.0", ChatColor.BLUE + "A DIAMOND");
-			getConfig().addDefault("bake.enchantment.slot.0", "UNBREAKING@5");
-			getConfig().addDefault("bake.award.slot.1", "CAKE");
-			getConfig().addDefault("bake.chances.slot.1", 1);
-			getConfig().addDefault("bake.amount.slot.1", 1);
-			getConfig().addDefault("bake.lore.slot.1", ChatColor.LIGHT_PURPLE + "Thank you for participating! | Here! Have a cake!");
-			getConfig().addDefault("bake.name.slot.1", ChatColor.RED + "YUMMY!");
-			getConfig().addDefault("bake.enchantment.slot.1", "UNBREAKING@5|MENDING@1");
-			getConfig().addDefault("bake.award.slot.2", "NETHER_STAR");
-			getConfig().addDefault("bake.chances.slot.2", 0.05);
-			getConfig().addDefault("bake.amount.slot.2", 1);
-			getConfig().addDefault("bake.lore.slot.2", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
-			getConfig().addDefault("bake.name.slot.2", ChatColor.YELLOW + "Shiny!");
-			getConfig().addDefault("bake.award.slot.3", "GOLD_INGOT");
-			getConfig().addDefault("bake.chances.slot.3", 0.1);
-			getConfig().addDefault("bake.amount.slot.3", 3);
-			getConfig().addDefault("bake.lore.slot.3", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
-			getConfig().addDefault("bake.award.slot.4", "COAL");
-			getConfig().addDefault("bake.chances.slot.4", 0.8);
-			getConfig().addDefault("bake.amount.slot.4", 16);
-			getConfig().addDefault("bake.lore.slot.4", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
-			// CHAT
-			//record surpass broadcast
-			getConfig().addDefault("bake.general.doRecordSurpassBroadcast", true);
-			getConfig().addDefault("bake.chat.recordSurpassBroadcast", ChatColor.GOLD + "The previous record of %RECORD% on the %RECORDDATE% was broken by the new record of %TODAY%!");
-			// When players use /bake
-			getConfig().addDefault("bake.chat.progress2", ChatColor.AQUA + "=========== Running Bake %VERSION%  ============ \n " + ChatColor.AQUA + "The Bake Progress is: %INTPROG% of %INTMAX% \n " + ChatColor.AQUA + "So we are %PERCENT% % done! Keep up! \n" + ChatColor.AQUA + " =======================================");
-			// When players use /bakestats
-			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "========================================\n The bake project was completed %TIMES% times in total, the last time on %LAST%." + ChatColor.AQUA + " \n The most projects were completed on %RECORDDATE% with %RECORD% times. \n" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated in the recent project.\n" + ChatColor.AQUA + "========================================");
-			// when players use /contibute
-			getConfig().addDefault("bake.chat.contr2", "%INTPROG% was added to the project! Thanks!");
-			getConfig().addDefault("bake.chat.global.contr2",ChatColor.GOLD + "%PLAYER% has contributed %INTPROG% to the bake projects! We are now a bit closer to the rewards!");
-			// when the bake project is finished
-			getConfig().addDefault("bake.chat.finish2", ChatColor.BOLD + "" + ChatColor.AQUA + "The bake project is finished! Everyone gets the rewards!");
-		
-		
-		
-			getConfig().options().copyDefaults(true);
 			saveConfig();
 		}
 		
@@ -350,7 +295,7 @@ public class Bake extends JavaPlugin {
 				Player player = (Player) sender; 
 				
 				//Check whether the player has the amount of wheat in its inventory, if not, the player will be notified
-				boolean tru = false;
+				boolean hasEnoughWeat = false;
 				
 				int amountLeft = amount;
 				for (int i = 0; i < player.getInventory().getSize(); i++) {
@@ -359,7 +304,7 @@ public class Bake extends JavaPlugin {
 						if (player.getInventory().getItem(i).getType() == Material.WHEAT) {
 							amountLeft -= player.getInventory().getItem(i).getAmount();
 							if (amountLeft <= 0) {
-								tru = true;
+								hasEnoughWeat = true;
 								break;
 							}
 						}
@@ -367,7 +312,7 @@ public class Bake extends JavaPlugin {
 					}
 				}
 				
-				if (tru) {//Player has enough wheat in its inventory
+				if (hasEnoughWeat) {//Player has enough wheat in its inventory
 					amountLeft = amount;
 					for (int i = 0; i < player.getInventory().getSize(); i++) {
 						if (amountLeft == 0) {
@@ -516,20 +461,10 @@ public class Bake extends JavaPlugin {
 								if (getConfig().getBoolean("bake.general.remember")) {
 									//Check whether player has yet contributed
 									if (Reminded.getOrDefault(players.getUniqueId(), false)) {
-										try {
-											players.getInventory().addItem(items);
-//											players.getInventory().setItem(players.getInventory().firstEmpty(),items);
-										} catch (ArrayIndexOutOfBoundsException e) {
-											//In case the player has full inventory
-										}
+										players.getInventory().addItem(items);
 									}
 								} else {
-									try {
-										players.getInventory().addItem(items);
-//										players.getInventory().setItem(players.getInventory().firstEmpty(),items);
-									} catch (ArrayIndexOutOfBoundsException e) {
-										//In case the player has full inventory
-									}
+									players.getInventory().addItem(items);
 								}
 							
 							}
@@ -582,11 +517,6 @@ public class Bake extends JavaPlugin {
 	 * @author Geolykt
 	 */
 	public void replaceAdvancedCached () {
-//		double progressPercent = (double) (-(BakeProgress - getConfig().getInt("bake.wheat_Required")) / (getConfig().getInt("bake.wheat_Required") + 0.0)*100);
-//		int progress = -(BakeProgress - getConfig().getInt("bake.wheat_Required") );
-		
-		//---------------------------------
-		
 	    msgProg = replaceAdvanced(getConfig().getString("bake.chat.progress2", "ERROR"));
 	    
 		msgContr = replaceAdvanced(getConfig().getString("bake.chat.contr2", "ERROR"));
