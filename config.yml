@@ -1,0 +1,86 @@
+#this is a test file to test things.
+bake:
+  general:
+    #version of the configuration, leave it be
+    configVersion: 4
+    #amounts of 'slots' used, the more, the more items you can award, but there might be lag.
+    slots: 5
+    #should only contributors be awarded. (non-contributors will not recieve anything)
+    remember: true
+    #should the contributors list be removed when the project is finished (it will not be saved anywhere, so when the server restarts, it is gone either way)
+    deleteRemembered: true
+    #should nothing be overridden (except bake.save.*)
+    noMeddle: false
+    #leave it be, setting it to false will break almost everything
+    cnfgStore: true
+    #should a broadcast be done when the day's record is broken?
+    doRecordSurpassBroadcast: true
+  #amount of required wheat
+  wheat_Required: 1000
+  metrics:
+    #set this to false if you don't want bake to contact https://geolykt.de/src/bake/bakeMetrics.php
+    opt-out: false
+  award:
+    #maximum amount of things that can be rewarded, so if it is set to 1 only 1 itemstack will be given out, however it can also award less.
+    maximum: 3
+    #the slot talked before will come handy here, please mind that it starts with 0 and ends with n - 1
+    slot:
+      '0': DIAMOND
+      '1': CAKE
+      '2': NETHER_STAR
+      '3': GOLD_INGOT
+      '4': COAL
+  chances:
+    slot:
+      '0': 0.5
+      '1': 1
+      '2': 0.05
+      '3': 0.1
+      '4': 0.8
+  amount:
+    slot:
+      '0': 2
+      '1': 1
+      '2': 1
+      '3': 3
+      '4': 16
+  lore:
+    slot:
+      '0': §dThank you for participating!
+      '1': §dThank you for participating! | Here! Have a cake!
+      '2': §dThank you for participating!
+      '3': §dThank you for participating!
+      '4': §dThank you for participating!
+  name:
+    slot:
+      '0': §9A DIAMOND
+      '1': §cYUMMY!
+      '2': §eShiny!
+  enchantment:
+    #!!!!!!!!!!IMPORTANT!!!!!! THESE VALUES WON'T WORK PER DEFAULT ON 1.12 AND EARLIER!!!!!!!!!!!!!! This may get changed with 1.6. but it may as well not change
+    slot:
+      '0': UNBREAKING@5
+      '1': UNBREAKING@5|MENDING@1
+  chat:
+    recordSurpassBroadcast: §6The previous record of %RECORD% on the %RECORDDATE%
+      was broken by the new record of %TODAY%!
+    progress2: "§b=========== Running Bake %VERSION%  ============ \n §bThe Bake Progress\
+      \ is: %INTPROG% of %INTMAX% \n §bSo we are %PERCENT% % done! Keep up! \n§b ======================================="
+    bakestats: "§b========================================\n The bake project was\
+      \ completed %TIMES% times in total, the last time on %LAST%.§b \n The most projects\
+      \ were completed on %RECORDDATE% with %RECORD% times. \n§bA total of §c%PARTICIPANTS%§\
+      b participated in the recent project.\n§b========================================"
+    contr2: '%INTPROG% was added to the project! Thanks!'
+    global:
+      contr2: §6%PLAYER% has contributed %INTPROG% to the bake projects! We are now
+        a bit closer to the rewards!
+    finish2: §l§bThe bake project is finished! Everyone gets the rewards!
+  #don't mess with these values, well you can but it doesn't give you much
+  save:
+    times: 0
+    last: '1970-01-01T00:00:00Z'
+    recordtime: '1970-01-01T00:00:00Z'
+    record: 0
+    today: 0
+    participants: 0
+    participantsToday: 0

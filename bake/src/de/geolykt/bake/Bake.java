@@ -1,5 +1,9 @@
 package de.geolykt.bake;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLConnection;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -20,18 +24,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * The main operating class
  * Almost all functions are called in here 
  * <ul><li>
- * 1.4.0: Reworked perms <br>
- * 1.4.0: Reworked standard loot. <br>
- * 1.4.0: Reworked Commands Usage. <br>
- * 1.4.0: Added possibility to only reward those who have contributed (active by default). <br>
- * 1.4.0: Added possibility to add lores <br>
- * 1.4.0: Added possibility to add enchantments <br>
- * 1.4.0: Added possibility to change the display name <br></li><li>
  * 1.4.1: Merged bake spigot 1.13/1.14 and spigot 1.12 versions (compatible with 1.12 AND 1.13/1.14)<br>
  * 1.4.1: Added config version<br>
  * 1.4.1: Changed the way the chat config system works, it has now an entire config line allocated for multiple ingame lines. <br>
@@ -59,7 +57,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  * ?: Added config parameter "bake.general.permremember", if set to true, the plugin will store ALL contributors and the amount they have contributed in a flat file<br>
  * </li></ul>
  * 
- * @version 1.5.0
+ * @version 1.5.1
  * @author Geolykt
  * @since 0.0.1 - SNAPSHOT
  *
@@ -76,6 +74,12 @@ public class Bake extends JavaPlugin {
 	private Instant Record = Instant.EPOCH; //The day the most projects were finished
 	private  HashMap<UUID, Boolean> Reminded= new HashMap<UUID, Boolean>(); //A HashMap that
 	private  HashMap<UUID, Boolean> RemindedDay = new HashMap<UUID, Boolean>(); //A HashMap that
+	
+	/**
+	 * API LEVEL for the bukkit server, not the plugin itself, you need that one, use the Bake Auxillary instead!
+	 * @since 1.5.1
+	 */
+	private int API_LEVEL;
 	
 	/**
 	 * Private Container for cached /bake messages.
@@ -106,11 +110,43 @@ public class Bake extends JavaPlugin {
 	
 	@Override
 	public void onEnable () {
+		// Configuration initialization
+		
+		saveDefaultConfig();
+//		reloadConfig();
+		
+		//Contact bakeMetrics
+		getLogger().fine("Metrics init");
+		BukkitRunnable metricsRunnable = new BukkitRunnable() {
+				
+			@Override
+			public void run() {
+				getLogger().info("Enabling bake metrics...");
+				if (getConfig().getBoolean("bake.firstRun", true)) {
+					getConfig().addDefault("bake.firstRun", false);
+					getLogger().info("Bake uses it's own metrics server at \"https://geolykt.de/src/bake/bakeMetrics.php\". To honor privacy, it will not contact it on the first run or if \"bake.metrics.opt-out\" is set to true.");
+					saveConfig();
+					return;
+				}
+				if (!getConfig().getBoolean("bake.metrics.opt-out", true)) {
+					try {
+						URI metricsServerURI = new URI("https://geolykt.de/src/bake/bakeMetrics.php?version=" + Bake_Auxillary.PLUGIN_VERSION_ID);
+						URLConnection metricsServer = metricsServerURI.toURL().openConnection();
+						metricsServer.connect();
+						metricsServer.getInputStream().close();
+					} catch (URISyntaxException | IOException e) {
+						getLogger().info("An error occured while trying to send data to the metrics server. Ignoring."); // Would be strange, but don't panic
+					}
+					
+				}
+			}};
+		metricsRunnable.runTaskLater(this, 1L);
+		
+		//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
+		API_LEVEL = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
+		
 		
 		if (!getConfig().getBoolean("bake.general.noMeddle", false)) {
-		
-			getConfig().addDefault("bake.general.configVersion", 4);
-			
 		
 			// Config Convert Process
 			if (getConfig().getInt("bake.general.configVersion", -1) > 4) {
@@ -119,116 +155,27 @@ public class Bake extends JavaPlugin {
 				//the code can't do anything here, pray that it will work anyway.
 			}
 		
-			//Try to detect whether the config was used in a pre-bake 1.4.1 environment
-			if (getConfig().getInt("bake.general.slots", -1) != -1) {
-				//Notify User
-				getServer().getLogger().log(Level.WARNING, "The config version is older than it should be! The plugin will try to update the config, but it may look strange or not work at all.");
-				String s = "";
-				for (int i = 0; i < getConfig().getInt("bake.general.chatslots"); i++) {
-					s += getConfig().getString("bake.chat.progress." + i, "") + "\n";
-					getConfig().set("bake.chat.progress." + i, "");
-				}
-				s = Bake_Auxillary.NewConfig(s);
-				getConfig().addDefault("bake.chat.progress2", s);
-				s = "";
-				for (int i = 0; i < getConfig().getInt("bake.general.chatslots"); i++) {
-					s += getConfig().getString("bake.chat.contr." + i, "") + "\n";
-					getConfig().set("bake.chat.contr." + i, "");
-				}
-				s = Bake_Auxillary.NewConfig(s);
-				getConfig().addDefault("bake.chat.contr2", s);
-				s = "";
-				for (int i = 0; i < getConfig().getInt("bake.general.chatslots"); i++) {
-					s += getConfig().getString("bake.chat.global.contr." + i, "") + "\n";
-					getConfig().set("bake.chat.global.contr." + i, "");
-				}
-				s = Bake_Auxillary.NewConfig(s);
-				getConfig().addDefault("bake.chat.global.contr2", s);
-				s = "";
-				for (int i = 0; i < getConfig().getInt("bake.general.chatslots"); i++) {
-					s += getConfig().getString("bake.chat.finish." + i, "") + "\n";
-					getConfig().set("bake.chat.finish." + i, "");
-				}
-				s = Bake_Auxillary.NewConfig(s);
-				getConfig().addDefault("bake.chat.finish2", s);
-				s = null;
-			}
-		
 			// 1.4.1's %NEWLINE% is no longer supported in newer versions
 			if (getConfig().getInt("bake.general.configVersion", -1) > 4) {
-				getLogger().info("Updating from the 1.4.1 config version (version 3) to the 1.5.0 config version (version 4). You may need to restart the server for it to take effect."); 
+				getLogger().info("Updating from the 1.4.1 config version (version 3) to the 1.5.0/1.5.1 config version (version 4). You may need to restart the server for it to take effect."); 
 				
 				String s = getConfig().getString("bake.chat.progress2", "");
-				s = s.replaceAll("%NEWLINE%", "\n");
+				s = Bake_Auxillary.NewConfig(s);
 				getConfig().set("bake.chat.progress2", s);
 				
 				s = getConfig().getString("bake.chat.contr2", "");
-				s = s.replaceAll("%NEWLINE%", "\n");
+				s = Bake_Auxillary.NewConfig(s);
 				getConfig().set("bake.chat.contr2", s);
 				
 				s = getConfig().getString("bake.chat.global.contr2", "");
-				s = s.replaceAll("%NEWLINE%", "\n");
+				s = Bake_Auxillary.NewConfig(s);
 				getConfig().set("bake.chat.global.contr2", s);
 				
 				s = getConfig().getString("bake.chat.finish2", "");
-				s = s.replaceAll("%NEWLINE%", "\n");
+				s = Bake_Auxillary.NewConfig(s);
 				getConfig().set("bake.chat.finish2", s);
 				saveConfig();
 			}
-			
-			
-			//General Stuff
-			getConfig().addDefault("bake.wheat_Required", 1000);
-			getConfig().addDefault("bake.general.slots", 5);
-			getConfig().addDefault("bake.general.remember", true);
-			getConfig().addDefault("bake.general.deleteRemembered", true);
-			getConfig().addDefault("bake.general.noMeddle", false);
-			getConfig().addDefault("bake.general.cnfgStore", true);
-		
-			getConfig().addDefault("bake.award.maximum", 3);
-			//Loot
-			getConfig().addDefault("bake.award.slot.0", "DIAMOND");
-			getConfig().addDefault("bake.chances.slot.0", 0.5);
-			getConfig().addDefault("bake.amount.slot.0", 2);
-			getConfig().addDefault("bake.lore.slot.0", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
-			getConfig().addDefault("bake.name.slot.0", ChatColor.BLUE + "A DIAMOND");
-			getConfig().addDefault("bake.enchantment.slot.0", "UNBREAKING@5");
-			getConfig().addDefault("bake.award.slot.1", "CAKE");
-			getConfig().addDefault("bake.chances.slot.1", 1);
-			getConfig().addDefault("bake.amount.slot.1", 1);
-			getConfig().addDefault("bake.lore.slot.1", ChatColor.LIGHT_PURPLE + "Thank you for participating! | Here! Have a cake!");
-			getConfig().addDefault("bake.name.slot.1", ChatColor.RED + "YUMMY!");
-			getConfig().addDefault("bake.enchantment.slot.1", "UNBREAKING@5|MENDING@1");
-			getConfig().addDefault("bake.award.slot.2", "NETHER_STAR");
-			getConfig().addDefault("bake.chances.slot.2", 0.05);
-			getConfig().addDefault("bake.amount.slot.2", 1);
-			getConfig().addDefault("bake.lore.slot.2", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
-			getConfig().addDefault("bake.name.slot.2", ChatColor.YELLOW + "Shiny!");
-			getConfig().addDefault("bake.award.slot.3", "GOLD_INGOT");
-			getConfig().addDefault("bake.chances.slot.3", 0.1);
-			getConfig().addDefault("bake.amount.slot.3", 3);
-			getConfig().addDefault("bake.lore.slot.3", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
-			getConfig().addDefault("bake.award.slot.4", "COAL");
-			getConfig().addDefault("bake.chances.slot.4", 0.8);
-			getConfig().addDefault("bake.amount.slot.4", 16);
-			getConfig().addDefault("bake.lore.slot.4", ChatColor.LIGHT_PURPLE + "Thank you for participating!");
-			// CHAT
-			//record surpass broadcast
-			getConfig().addDefault("bake.general.doRecordSurpassBroadcast", true);
-			getConfig().addDefault("bake.chat.recordSurpassBroadcast", ChatColor.GOLD + "The previous record of %RECORD% on the %RECORDDATE% was broken by the new record of %TODAY%!");
-			// When players use /bake
-			getConfig().addDefault("bake.chat.progress2", ChatColor.AQUA + "=========== Running Bake %VERSION%  ============ \n " + ChatColor.AQUA + "The Bake Progress is: %INTPROG% of %INTMAX% \n " + ChatColor.AQUA + "So we are %PERCENT% % done! Keep up! \n" + ChatColor.AQUA + " =======================================");
-			// When players use /bakestats
-			getConfig().addDefault("bake.chat.bakestats", ChatColor.AQUA + "========================================\n The bake project was completed %TIMES% times in total, the last time on %LAST%." + ChatColor.AQUA + " \n The most projects were completed on %RECORDDATE% with %RECORD% times. \n" + ChatColor.AQUA + "A total of " + ChatColor.RED + "%PARTICIPANTS%" + ChatColor.AQUA + " participated in the recent project.\n" + ChatColor.AQUA + "========================================");
-			// when players use /contibute
-			getConfig().addDefault("bake.chat.contr2", "%INTPROG% was added to the project! Thanks!");
-			getConfig().addDefault("bake.chat.global.contr2",ChatColor.GOLD + "%PLAYER% has contributed %INTPROG% to the bake projects! We are now a bit closer to the rewards!");
-			// when the bake project is finished
-			getConfig().addDefault("bake.chat.finish2", ChatColor.BOLD + "" + ChatColor.AQUA + "The bake project is finished! Everyone gets the rewards!");
-		
-		
-		
-			getConfig().options().copyDefaults(true);
 			saveConfig();
 		}
 		
@@ -348,7 +295,7 @@ public class Bake extends JavaPlugin {
 				Player player = (Player) sender; 
 				
 				//Check whether the player has the amount of wheat in its inventory, if not, the player will be notified
-				boolean tru = false;
+				boolean hasEnoughWeat = false;
 				
 				int amountLeft = amount;
 				for (int i = 0; i < player.getInventory().getSize(); i++) {
@@ -357,7 +304,7 @@ public class Bake extends JavaPlugin {
 						if (player.getInventory().getItem(i).getType() == Material.WHEAT) {
 							amountLeft -= player.getInventory().getItem(i).getAmount();
 							if (amountLeft <= 0) {
-								tru = true;
+								hasEnoughWeat = true;
 								break;
 							}
 						}
@@ -365,7 +312,7 @@ public class Bake extends JavaPlugin {
 					}
 				}
 				
-				if (tru) {//Player has enough wheat in its inventory
+				if (hasEnoughWeat) {//Player has enough wheat in its inventory
 					amountLeft = amount;
 					for (int i = 0; i < player.getInventory().getSize(); i++) {
 						if (amountLeft == 0) {
@@ -430,9 +377,9 @@ public class Bake extends JavaPlugin {
 					getServer().broadcastMessage(s);
 					ItemStack items;
 					int reward_count = 0;
+					
+					
 					//Item reward process
-					
-					
 					for (int i = 0; i < getConfig().getInt("bake.general.slots", 0); i++) {
 						
 						if ((Math.random() < getConfig().getDouble("bake.chances.slot." + i)) && (getConfig().getInt("bake.award.maximum")) > reward_count) {
@@ -449,9 +396,11 @@ public class Bake extends JavaPlugin {
 								itemM.setLore(l);
 							}
 							l.clear();
+							
 							itemM.setDisplayName(getConfig().getString("bake.name.slot." + i, getConfig().getString("bake.award.slot." + i, "AIR")));
 							items.setItemMeta(itemM);
 
+							
 							//Enchantment
 							HashMap<Enchantment,Integer> enchantments = new HashMap<Enchantment, Integer>(); 
 							for (String string : getConfig().getString("bake.enchantment.slot." + i, "NIL").split("\\|")) {
@@ -463,62 +412,59 @@ public class Bake extends JavaPlugin {
 								}
 								// Source for errors: Enchantment.getByKey only exists in spigot API level 13 or higher, but not in spigot API level 12 or lower!
 								// So the code will check which version the server is running on and then uses the appropriate function, this is doable as Java allows the use of invalid functions within the sourcecode as long as they don't get called.
-								
-								//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
-								int APILevel = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
 								try { //prevent stupidity of the server owner
 									//API 13+
-									if (APILevel >= 13) {
+									if (API_LEVEL >= 13) {
 										enchantments.put(Enchantment.getByKey(NamespacedKey.minecraft(string.split("@")[0])), Integer.valueOf(string.split("@")[1]));
-									} else if (APILevel <= 12) {//API 12 or lower (some levels might  still not work though)
+									} else if (API_LEVEL == 12) {//API 12
 										//This is deprecated for Bukkit 1.13 or higher, but since it doesn't get called on these versions, it is fine
 										enchantments.put(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]));
 									}
+									//1.12 and above -> enchantment as usual
+									if (API_LEVEL >= 12) {//API 12 or higher
+										try {
+											items.addUnsafeEnchantments(enchantments);
+										} catch (IllegalArgumentException e) {
+											if (API_LEVEL <= 12) {
+												this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
+											} else {
+												this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
+											}
+										}
+										enchantments.clear();
+									//1.11 and below -> enchantment via metadata
+									} else if (API_LEVEL <= 11) { //API 11 or lower
+										itemM.addEnchant(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]), true);
+									}
 								} catch (NullPointerException e) {
-									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
+									getLogger().severe("Error while enchanting item: NullPointerException: it is recommended to use 1.12 enchant strings, not the 1.13 ones (default values)! If the error persists, create an issue on github or dev.bukkit.org");
+									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: An issue occoured during the process, see the logfiles for more information");
 								} catch (java.lang.IllegalArgumentException e) {
-									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
+									getLogger().severe("Error while enchanting item: IllegalArgumentException: it is recommended to use 1.12 enchant strings, not the 1.13 ones (default values)! If the error persists, create an issue on github or dev.bukkit.org");
+									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: An issue occoured during the process, see the logfiles for more information");
 								}
 							}
-							if (!enchantments.isEmpty()) { //check whether there is a need to apply enchantments, this may solve some issues with unenchanted items
-								try {
-									items.addUnsafeEnchantments(enchantments);
-								} catch (NullPointerException e) { //For 1.8
-									if (Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])<13) {
-										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.8 - 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
-									} else {
-										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
-									}
-								}catch (IllegalArgumentException e) {
-									if (Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])<13) {
-										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.8 - 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
-									} else {
-										this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
-									}
-								}
-								enchantments.clear();
+							if (API_LEVEL <= 11) {
+								items.setItemMeta(itemM);
 							}
+							
 							//send item to the players
 							for (Player players : getServer().getOnlinePlayers()) {
 								if (players.getInventory().firstEmpty() == -1) {
 									continue;
 								}
+								
+								
+								getLogger().info(items.getEnchantments() + "");
+								
 								//Server uses setting?
 								if (getConfig().getBoolean("bake.general.remember")) {
 									//Check whether player has yet contributed
 									if (Reminded.getOrDefault(players.getUniqueId(), false)) {
-										try {
-											players.getInventory().setItem(players.getInventory().firstEmpty(),items);
-										} catch (ArrayIndexOutOfBoundsException e) {
-											//In case the player has full inventory
-										}
+										players.getInventory().addItem(items);
 									}
 								} else {
-									try {
-										players.getInventory().setItem(players.getInventory().firstEmpty(),items);
-									} catch (ArrayIndexOutOfBoundsException e) {
-										//In case the player has full inventory
-									}
+									players.getInventory().addItem(items);
 								}
 							
 							}
@@ -571,11 +517,6 @@ public class Bake extends JavaPlugin {
 	 * @author Geolykt
 	 */
 	public void replaceAdvancedCached () {
-//		double progressPercent = (double) (-(BakeProgress - getConfig().getInt("bake.wheat_Required")) / (getConfig().getInt("bake.wheat_Required") + 0.0)*100);
-//		int progress = -(BakeProgress - getConfig().getInt("bake.wheat_Required") );
-		
-		//---------------------------------
-		
 	    msgProg = replaceAdvanced(getConfig().getString("bake.chat.progress2", "ERROR"));
 	    
 		msgContr = replaceAdvanced(getConfig().getString("bake.chat.contr2", "ERROR"));

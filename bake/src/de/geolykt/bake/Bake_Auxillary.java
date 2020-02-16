@@ -9,7 +9,18 @@ package de.geolykt.bake;
  */
 public class Bake_Auxillary {
 
-	private static final String PLUGIN_VERSION = "1.5.0"; 
+	/**
+	 * The version of the plugin in the MAJOR.MINOR.PATCH format.
+	 * @since 1.4.1, public since 1.5.1
+	 */
+	public static final String PLUGIN_VERSION = "1.5.1";
+	
+	/**
+	 * The version of the plugin in the format used by the bakeMetrics software.
+	 * @since 1.5.1
+	 */
+	public static final byte PLUGIN_VERSION_ID = 0x1;
+	
 	/**
 	 * This function is in place to make it more easy for the plugin to parse the config file from an older version (config version 2) to a newer (config version 3+).
 	 * 
@@ -25,7 +36,7 @@ public class Bake_Auxillary {
 		str = str.replaceAll("&PLAYER;", "%PLAYER%");
 		str = str.replaceAll("&INTMAX;", "%INTMAX%");
 		// 1.4.1 -> post 1.4.1
-		str = str.replaceAll("\\%NEWLINE\\%", "\n");
+		str = str.replaceAll("%NEWLINE%", "\n");
 		return str;
 	}
 	
