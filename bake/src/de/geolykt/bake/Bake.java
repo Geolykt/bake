@@ -153,59 +153,24 @@ public class Bake extends JavaPlugin {
 				//the code can't do anything here, pray that it will work anyway.
 			}
 		
-			//Try to detect whether the config was used in a pre-bake 1.4.1 environment
-			if (getConfig().getInt("bake.general.slots", -1) != -1) {
-				//Notify User
-				getServer().getLogger().log(Level.WARNING, "The config version is older than it should be! The plugin will try to update the config, but it may look strange or not work at all.");
-				String s = "";
-				for (int i = 0; i < getConfig().getInt("bake.general.chatslots"); i++) {
-					s += getConfig().getString("bake.chat.progress." + i, "") + "\n";
-					getConfig().set("bake.chat.progress." + i, "");
-				}
-				s = Bake_Auxillary.NewConfig(s);
-				getConfig().addDefault("bake.chat.progress2", s);
-				s = "";
-				for (int i = 0; i < getConfig().getInt("bake.general.chatslots"); i++) {
-					s += getConfig().getString("bake.chat.contr." + i, "") + "\n";
-					getConfig().set("bake.chat.contr." + i, "");
-				}
-				s = Bake_Auxillary.NewConfig(s);
-				getConfig().addDefault("bake.chat.contr2", s);
-				s = "";
-				for (int i = 0; i < getConfig().getInt("bake.general.chatslots"); i++) {
-					s += getConfig().getString("bake.chat.global.contr." + i, "") + "\n";
-					getConfig().set("bake.chat.global.contr." + i, "");
-				}
-				s = Bake_Auxillary.NewConfig(s);
-				getConfig().addDefault("bake.chat.global.contr2", s);
-				s = "";
-				for (int i = 0; i < getConfig().getInt("bake.general.chatslots"); i++) {
-					s += getConfig().getString("bake.chat.finish." + i, "") + "\n";
-					getConfig().set("bake.chat.finish." + i, "");
-				}
-				s = Bake_Auxillary.NewConfig(s);
-				getConfig().addDefault("bake.chat.finish2", s);
-				s = null;
-			}
-		
 			// 1.4.1's %NEWLINE% is no longer supported in newer versions
 			if (getConfig().getInt("bake.general.configVersion", -1) > 4) {
-				getLogger().info("Updating from the 1.4.1 config version (version 3) to the 1.5.0 config version (version 4). You may need to restart the server for it to take effect."); 
+				getLogger().info("Updating from the 1.4.1 config version (version 3) to the 1.5.0/1.5.1 config version (version 4). You may need to restart the server for it to take effect."); 
 				
 				String s = getConfig().getString("bake.chat.progress2", "");
-				s = s.replaceAll("%NEWLINE%", "\n");
+				s = Bake_Auxillary.NewConfig(s);
 				getConfig().set("bake.chat.progress2", s);
 				
 				s = getConfig().getString("bake.chat.contr2", "");
-				s = s.replaceAll("%NEWLINE%", "\n");
+				s = Bake_Auxillary.NewConfig(s);
 				getConfig().set("bake.chat.contr2", s);
 				
 				s = getConfig().getString("bake.chat.global.contr2", "");
-				s = s.replaceAll("%NEWLINE%", "\n");
+				s = Bake_Auxillary.NewConfig(s);
 				getConfig().set("bake.chat.global.contr2", s);
 				
 				s = getConfig().getString("bake.chat.finish2", "");
-				s = s.replaceAll("%NEWLINE%", "\n");
+				s = Bake_Auxillary.NewConfig(s);
 				getConfig().set("bake.chat.finish2", s);
 				saveConfig();
 			}
