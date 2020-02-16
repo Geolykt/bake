@@ -475,7 +475,6 @@ public class Bake extends JavaPlugin {
 										//This is deprecated for Bukkit 1.13 or higher, but since it doesn't get called on these versions, it is fine
 										enchantments.put(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]));
 									}
-									
 									//1.12 and above -> enchantment as usual
 									if (API_LEVEL >= 12) {//API 12 or higher
 										try {
@@ -490,15 +489,14 @@ public class Bake extends JavaPlugin {
 										enchantments.clear();
 									//1.11 and below -> enchantment via metadata
 									} else if (API_LEVEL <= 11) { //API 11 or lower
-										itemM.addEnchant(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]), false);
-										
+										itemM.addEnchant(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]), true);
 									}
 								} catch (NullPointerException e) {
 									getLogger().severe("Error while enchanting item: NullPointerException: it is recommended to use 1.12 enchant strings, not the 1.13 ones (default values)! If the error persists, create an issue on github or dev.bukkit.org");
-									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
+									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: An issue occoured during the process, see the logfiles for more information");
 								} catch (java.lang.IllegalArgumentException e) {
 									getLogger().severe("Error while enchanting item: IllegalArgumentException: it is recommended to use 1.12 enchant strings, not the 1.13 ones (default values)! If the error persists, create an issue on github or dev.bukkit.org");
-									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: Please contact an administrator, if you are an administrator, stop the server and have a deep look into the config file. @-@");
+									getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: An issue occoured during the process, see the logfiles for more information");
 								}
 							}
 							if (API_LEVEL <= 11) {
