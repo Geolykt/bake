@@ -1,5 +1,9 @@
 package de.geolykt.bake;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLConnection;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -20,6 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * The main operating class
@@ -105,7 +110,33 @@ public class Bake extends JavaPlugin {
 	
 	@Override
 	public void onEnable () {
-
+		
+		//Contact bakeMetrics
+		getLogger().fine("Metrics init");
+		BukkitRunnable metricsRunnable = new BukkitRunnable() {
+				
+			@Override
+			public void run() {
+				getLogger().info("Enabling bake metrics...");
+				if (getConfig().getBoolean("bake.firstRun", true)) {
+					getConfig().addDefault("bake.firstRun", false);
+					getLogger().info("Bake uses it's own metrics server at \"https://geolykt.de/src/bake/bakeMetrics.php\". To honor privacy, it will not contact it on the first run or if \"bake.metrics.opt-out\" is set to true.");
+					saveConfig();
+					return;
+				}
+				if (!getConfig().getBoolean("bake.metrics.opt-out", true)) {
+					try {
+						URI metricsServerURI = new URI("https://geolykt.de/src/bake/bakeMetrics.php?version=" + Bake_Auxillary.PLUGIN_VERSION_ID);
+						URLConnection metricsServer = metricsServerURI.toURL().openConnection();
+						metricsServer.connect();
+					} catch (URISyntaxException | IOException e) {
+						getLogger().info("An error occured while trying to send data to the metrics server. Ignoring."); // Would be strange, but don't panic
+					}
+					
+				}
+			}};
+		metricsRunnable.runTaskLater(this, 1L);
+		
 		//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
 		API_LEVEL = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
 		
@@ -188,6 +219,9 @@ public class Bake extends JavaPlugin {
 			getConfig().addDefault("bake.general.noMeddle", false);
 			getConfig().addDefault("bake.general.cnfgStore", true);
 		
+			//Metrics
+			getConfig().addDefault("bake.metrics.opt-out", false);
+			
 			getConfig().addDefault("bake.award.maximum", 3);
 			//Loot
 			getConfig().addDefault("bake.award.slot.0", "DIAMOND");
