@@ -23,8 +23,12 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import de.geolykt.bake.util.EnchantmentLib;
+import net.milkbowl.vault.economy.Economy;
 
 /**
  * The main operating class
@@ -46,6 +50,14 @@ import org.bukkit.scheduler.BukkitRunnable;
  * 1.5.0: The Public int "BakeProgress" in class "Bake" is now a private int, if your plugin used the value, please change that <br>
  * 1.5.0: A broadcast will usually be done (if not disabled via setting) when the Record gets broken. <br>
  * 1.5.0: Added command: "/bakestats", which is just a bit like /bake, but has the intended use with statistics surrounding the bake project form all the way since 1.5.0 (or a newer version) was implemented on the server. <br>
+ * 1.5.1: Added metrics <br>
+ * 1.5.1: Added 1.8  - 1.11 support <br>
+ * 1.5.1: Code cleanup <br>
+ * 1.5.2: Now automatically converts enchantment names from pre-1.13 to  post 1.12.2 and vice versa (as long as its required). <br>
+ * 1.5.2: Added config parameter "bake.general.doEnchantConvert" which toggles wether to convert enchantments from 1.12 and earlier to 1.13 or later (and vice versa; will pick the correct one)<br>
+ * 1.5.2: Added vault support via the "bake.award.money" config parameter
+ * 1.5.2: Added config parameter "bake.award.money" which adds vault money to participants.
+ * 1.5.2: The record value now uses the date of the day before the record was broken, not the date of the day when the record was broken. So it will now correctly show when the most projects were completed.
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
@@ -54,16 +66,28 @@ import org.bukkit.scheduler.BukkitRunnable;
  * ?: Added placeholder: "%BESTDATE%", which replaces the date where the fastest project was completed. <br>
  * ?: Added placeholder: "%PARTICIPANTSTODAY%", which replaces how many participants have participated today. <br>
  * ?: Added placeholder: "%PARTICIPANTSRECORD%", which replaces how many participants have contributed at most. <br>
- * ?: Added config parameter "bake.general.permremember", if set to true, the plugin will store ALL contributors and the amount they have contributed in a flat file<br>
+ * ?: Added config parameter "bake.general.permremember", if set to true, the plugin will store ALL contributors and the amount they have contributed in a flat file <br>
  * </li></ul>
  * 
- * @version 1.5.1
+ * @version 1.5.2
  * @author Geolykt
  * @since 0.0.1 - SNAPSHOT
  *
  */
 public class Bake extends JavaPlugin {
 
+	/**
+	 * Whether or not to use Vault (a money and permission API), see https://github.com/MilkBowl/VaultAPI
+	 * @since 1.5.2
+	 */
+	private boolean useVault = true;
+	
+	/**
+	 * The economy this plugin uses.
+	 * @since 1.5.2
+	 */
+	private Economy Eco = null;
+	
 	private int BakeProgress = 0; //The Progress of the project
 	private byte Participants = 0; //The Participants of the current project
 	private byte ParticipantsToday = 0; //The number of participants today
@@ -110,8 +134,10 @@ public class Bake extends JavaPlugin {
 	
 	@Override
 	public void onEnable () {
-		// Configuration initialization
+		//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
+		API_LEVEL = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
 		
+		// Configuration initialization
 		saveDefaultConfig();
 //		reloadConfig();
 		
@@ -123,10 +149,10 @@ public class Bake extends JavaPlugin {
 			public void run() {
 				getLogger().info("Enabling bake metrics...");
 				if (getConfig().getBoolean("bake.firstRun", true)) {
-					getConfig().addDefault("bake.firstRun", false);
+					getConfig().set("bake.firstRun", false);
 					getLogger().info("Bake uses it's own metrics server at \"https://geolykt.de/src/bake/bakeMetrics.php\". To honor privacy, it will not contact it on the first run or if \"bake.metrics.opt-out\" is set to true.");
 					saveConfig();
-					return;
+					return;//stop the metics runnable
 				}
 				if (!getConfig().getBoolean("bake.metrics.opt-out", true)) {
 					try {
@@ -142,9 +168,15 @@ public class Bake extends JavaPlugin {
 			}};
 		metricsRunnable.runTaskLater(this, 1L);
 		
-		//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
-		API_LEVEL = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
-		
+		if (getConfig().getDouble("bake.award.money", 0.0) > 0.0) {
+			if (!setupEconomy()) {
+				//Not hooked into Vault.
+				getLogger().warning("Vault (or an Economy plugin) was not installed or initiated too late. This is not much of a problem, but money won't be awarded.");
+			}
+		} else {
+			//Using Vault would make no sense as no money would be sent.
+			useVault = false;
+		}
 		
 		if (!getConfig().getBoolean("bake.general.noMeddle", false)) {
 		
@@ -176,6 +208,18 @@ public class Bake extends JavaPlugin {
 				getConfig().set("bake.chat.finish2", s);
 				saveConfig();
 			}
+			
+			//1.5.2 Enchant conversion
+			if (getConfig().getBoolean("bake.general.doEnchantConvert", true)) {
+				for (int i = 0; i < getConfig().getInt("bake.general.slots", 0); i++) {
+					if (API_LEVEL >= 13) { //13 or later
+						getConfig().set("bake.enchantment.slot." + i, EnchantmentLib.Convert12to13(getConfig().getString("bake.enchantment.slot." + i, "NIL")));
+					} else {//12 or earlier
+						getConfig().set("bake.enchantment.slot." + i, EnchantmentLib.Convert13to12(getConfig().getString("bake.enchantment.slot." + i, "NIL")));
+					}
+				}
+			}
+			
 			saveConfig();
 		}
 		
@@ -198,7 +242,7 @@ public class Bake extends JavaPlugin {
 	}
 	
 	/**
-	 * This function reads the config file and gets all useful values from it and stores them in their respective variables.
+	 * This function "reads" the config file and gets all useful values from it and stores them in their respective variables.
 	 * 
 	 * @author Geolykt
 	 * @since 1.5.0
@@ -473,6 +517,13 @@ public class Bake extends JavaPlugin {
 						
 					}
 					
+					if (useVault) {
+						double moneyAmount = getConfig().getDouble("bake.award.money", 0.0);
+						for (Player players: getServer().getOnlinePlayers()) {
+							Eco.depositPlayer(players, moneyAmount);
+						}
+					}
+					
 					//Bake project finished 
 					BakeProgress = getConfig().getInt("bake.wheat_Required");//reset progress
 					if (getConfig().getBoolean("bake.general.deleteRemembered")) {//Clear the list of contributors
@@ -491,7 +542,7 @@ public class Bake extends JavaPlugin {
 						if (Today > BestAmount) {
 							if (getConfig().getBoolean("bake.general.doRecordSurpassBroadcast", true)) {
 								this.getServer().broadcastMessage(Bake_Auxillary.ReplacePlaceHolders(replaceAdvanced(getConfig().getString("bake.chat.recordSurpassBroadcast", "ERROR: You should restart the server.")), Integer.parseInt(args[0]), getConfig().getInt("bake.wheat_Required"), -1, player.getDisplayName()));
-								this.Record = Instant.now();
+								this.Record = Instant.ofEpochMilli(System.currentTimeMillis()-86400000);
 							}
 							BestAmount = Today;
 						}
@@ -528,6 +579,13 @@ public class Bake extends JavaPlugin {
 		msgStats = replaceAdvanced(getConfig().getString("bake.chat.bakestat", "ERROR"));
 	}
 
+	/**
+	 * Like replaceAdvancedCached, but can be used to parse pretty much everything and it gets returned
+	 * @param s The string to be parsed.
+	 * @return The parsed string
+	 * @since 1.5.0
+	 * @author Geolykt
+	 */
 	public String replaceAdvanced(String s) {
 		s = s.replaceAll("%TIMES%", String.valueOf(Times));
 		s = s.replaceAll("%TODAY%", String.valueOf(Today));
@@ -542,4 +600,20 @@ public class Bake extends JavaPlugin {
 		s = s.replaceAll("%PARTICIPANTSTODAY%", String.valueOf(ParticipantsToday));
 		return s;
 	}
+
+	/**
+	 * Sets up the economy.
+	 * 
+	 * @return false if economy not found, true if it was found.
+	 * @since 1.5.2
+	 * @author Geolykt
+	 */
+	private boolean setupEconomy() {
+        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+        if (economyProvider != null) {
+            Eco = economyProvider.getProvider();
+        }
+        useVault = Eco != null;
+        return useVault;//Sets useVault to the inverse of whether the Economy is null, and returns it. 
+    }
 }
