@@ -1,5 +1,12 @@
 
+#eclipse
 .classpath
 .project
 bin/
 *.prefs
+
+#gradle
+.gradle/
+*.gradle
+gradlew
+gradlew.*

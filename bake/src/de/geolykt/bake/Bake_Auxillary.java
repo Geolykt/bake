@@ -13,13 +13,13 @@ public class Bake_Auxillary {
 	 * The version of the plugin in the MAJOR.MINOR.PATCH format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.5.1";
+	public static final String PLUGIN_VERSION = "1.5.2";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
 	 * @since 1.5.1
 	 */
-	public static final byte PLUGIN_VERSION_ID = 0x1;
+	public static final byte PLUGIN_VERSION_ID = 0x2;
 	
 	/**
 	 * This function is in place to make it more easy for the plugin to parse the config file from an older version (config version 2) to a newer (config version 3+).
@@ -63,7 +63,9 @@ public class Bake_Auxillary {
 	}
 	
 	/**
-	 * returns the length of the longest String in an array
+	 * returns the length of the longest String in an array.
+	 * @deprecated Not used and thus not tested in recent versions. Will be used for 1.6 (hopefully)
+	 * TODO Use this
 	 * 
 	 * @param s Array of strings to be looked for
 	 * @return The length of the longest String in the array

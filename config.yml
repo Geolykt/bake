@@ -13,6 +13,8 @@ bake:
     noMeddle: false
     #leave it be, setting it to false will break almost everything
     cnfgStore: true
+    #Should enchants get automatically converted (might fix bugs connected to enchants, but can cause longer starting times.)
+    doEnchantConvert: true
     #should a broadcast be done when the day's record is broken?
     doRecordSurpassBroadcast: true
   #amount of required wheat
@@ -21,6 +23,8 @@ bake:
     #set this to false if you don't want bake to contact https://geolykt.de/src/bake/bakeMetrics.php
     opt-out: false
   award:
+    #amount of vault money that should be given to each participant on completion.
+    money: 100
     #maximum amount of things that can be rewarded, so if it is set to 1 only 1 itemstack will be given out, however it can also award less.
     maximum: 3
     #the slot talked before will come handy here, please mind that it starts with 0 and ends with n - 1
@@ -57,7 +61,6 @@ bake:
       '1': §cYUMMY!
       '2': §eShiny!
   enchantment:
-    #!!!!!!!!!!IMPORTANT!!!!!! THESE VALUES WON'T WORK PER DEFAULT ON 1.12 AND EARLIER!!!!!!!!!!!!!! This may get changed with 1.6. but it may as well not change
     slot:
       '0': UNBREAKING@5
       '1': UNBREAKING@5|MENDING@1

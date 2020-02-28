@@ -8,7 +8,7 @@
  	<meta name="keywords" content="Geolykt, Minecraft, Bake, Metrics, why are you here">
  	<meta name="author" content="Geolykt">
 </head>
-<body><p>$1.5.1$1.5.1$<br> Most recent nightly version / Most recent public version <br> To see the version usage use <a href="versions.txt">this file</a></p> 
+<body><p>$1.5.2$1.5.2$<br> Most recent nightly version / Most recent public version <br> To see the version usage use <a href="versions.txt">this file</a></p> 
  <?php
  #handle versiuon submittion
  if (count($_GET) == 0) {
