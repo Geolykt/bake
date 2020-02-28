@@ -1,7 +1,5 @@
 package de.geolykt.bake.util;
 
-import org.bukkit.Bukkit;
-
 /**
  * An enchantment name conversion library written for the bake plugin.
  * @author Geolykt

@@ -1,5 +1,6 @@
 package de.geolykt.bake;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -147,22 +148,50 @@ public class Bake extends JavaPlugin {
 				
 			@Override
 			public void run() {
-				getLogger().info("Enabling bake metrics...");
+				getLogger().info("Sending metrics data and checking for new updates...");
 				if (getConfig().getBoolean("bake.firstRun", true)) {
 					getConfig().set("bake.firstRun", false);
-					getLogger().info("Bake uses it's own metrics server at \"https://geolykt.de/src/bake/bakeMetrics.php\". To honor privacy, it will not contact it on the first run or if \"bake.metrics.opt-out\" is set to true.");
+					getLogger().info("Bake uses it's own metrics system. To honor privacy, it will not contact it on the first run or if \"bake.metrics.opt-out\" is set to true.");
 					saveConfig();
 					return;//stop the metics runnable
 				}
 				if (!getConfig().getBoolean("bake.metrics.opt-out", true)) {
+					BufferedInputStream in = null;
 					try {
 						URI metricsServerURI = new URI("https://geolykt.de/src/bake/bakeMetrics.php?version=" + Bake_Auxillary.PLUGIN_VERSION_ID);
 						URLConnection metricsServer = metricsServerURI.toURL().openConnection();
 						metricsServer.connect();
-						metricsServer.getInputStream().close();
+						in = new BufferedInputStream(metricsServer.getInputStream());
 					} catch (URISyntaxException | IOException e) {
 						getLogger().info("An error occured while trying to send data to the metrics server. Ignoring."); // Would be strange, but don't panic
 					}
+						String s = "";
+						for (int i = 1000; i > 0; i--) {
+							try {
+								int n = in.read();
+								if (n == -1) {
+									break;
+								}
+								s += (char) n;
+							} catch (Exception e) {
+								//Exception.
+								break;
+							}
+						}
+						try {
+							if (s.split("\\$")[2].contentEquals(Bake_Auxillary.PLUGIN_VERSION)) {
+								getLogger().info("A new bake version is availabale.");
+							} else {
+								getLogger().info("No new updates");
+							}
+						} catch (Exception e) {
+							getLogger().warning("Please check the internet connection, if it is there the update servers might be down for some time.");
+						}
+						try {
+							in.close();
+						} catch (IOException e) {
+							//Exception. normal.
+						}
 					
 				}
 			}};
