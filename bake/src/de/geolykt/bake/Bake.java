@@ -189,9 +189,9 @@ public class Bake extends JavaPlugin {
 			getConfig().set("bake.firstRun", false);
 			saveConfig();
 		} else if (!getConfig().getBoolean("bake.metrics.opt-out", true)) {
-			metricsRunnable.State = 0x02;
-		} else {
 			metricsRunnable.State = 0x00;
+		} else {
+			metricsRunnable.State = 0x02;
 		}
 		metricsRunnable.runTaskLater(this, 1L);
 		

@@ -59,8 +59,8 @@ public class MeticsClass extends BukkitRunnable{
 				}
 			}
 			try {
-				if (s.split("\\$")[2].contentEquals(Bake_Auxillary.PLUGIN_VERSION)) {
-					Bukkit.getLogger().info("A new bake version is availabale.");
+				if (s.split("\\$")[1].contentEquals(Bake_Auxillary.PLUGIN_VERSION)) {
+					Bukkit.getLogger().info("A new (nightly) bake version is availabale.");
 				} else {
 					Bukkit.getLogger().info("No new updates");
 				}

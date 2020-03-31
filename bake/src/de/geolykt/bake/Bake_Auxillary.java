@@ -21,10 +21,10 @@ public class Bake_Auxillary {
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
-	 * 0x0=unknown
+	 * 0x0=unused
 	 * 0x1=1.5.1
 	 * 0x2=1.5.2
-	 * 0x3=1.6.0-pre1
+	 * 0x3=1.6.0-pre Releases
 	 * @since 1.5.1
 	 */
 	public static final byte PLUGIN_VERSION_ID = 0x3;
