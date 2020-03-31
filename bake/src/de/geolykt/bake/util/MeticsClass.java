@@ -32,7 +32,7 @@ public class MeticsClass extends BukkitRunnable{
 	@Override
 	public void run() {
 		
-		Bukkit.getLogger().info("Sending metrics data and checking for new updates...");
+		Bukkit.getLogger().info("[Bake] Sending metrics data and checking for new updates...");
 		
 		switch (State) {
 		case 0x00:

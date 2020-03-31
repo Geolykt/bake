@@ -1,5 +1,9 @@
 package de.geolykt.bake.util;
 
+import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.enchantments.EnchantmentWrapper;
+
 /**
  * An enchantment name conversion library written for the bake plugin.
  * @author Geolykt
@@ -10,6 +14,8 @@ public class EnchantmentLib {
 	/**
 	 *  Converts the input string, if applicable, from a 1.12 (or earlier) compatible string to a 1.13 (or later) compatible string.
 	 *  May not be 100% accurate, needs testing.
+	 *  
+	 *  @since 1.5.2, last revised: 1.6.0-pre1 (fixed critical bug where it would automatically put it into uppercase, which is NOT needed and may result in a crash)
 	 */
 	public static String Convert12to13 (String enchant) {
 		enchant = enchant.toUpperCase();
@@ -62,7 +68,8 @@ public class EnchantmentLib {
 		enchant = enchant.replaceAll("MENDING", "mending");
 		enchant = enchant.replaceAll("BINDING_CURSE", "binding_curse");
 		enchant = enchant.replaceAll("VANISHING_CURSE", "vanishing_curse");
-		return enchant;
+		
+		return enchant.toLowerCase();
 	}
 	
 
@@ -122,5 +129,24 @@ public class EnchantmentLib {
 		enchant = enchant.replaceAll("binding_curse", "BINDING_CURSE");
 		enchant = enchant.replaceAll("vanishing_curse", "VANISHING_CURSE");
 		return enchant;
+	}
+
+	/**
+	 * Returns an enchantment based on the input string.<br>
+	 * Note: uses 1.13 Names for API 13, 1.12 name for API 12 <br>
+	 * Source for errors: Enchantment.getByKey only exists in Bukkit API level 13 or higher, but not in spigot API level 12 or lower! <br>
+	 * So the code will check which version the server is running on and then uses the appropriate function, this is doable as Java allows the use of invalid functions within the sourcecode as long as they don't get called. <br>
+	 * @param enchantment The name of the enchantment.
+	 * @param API_LEVEL at which Bukkit API level should the method work?
+	 * @throws IllegalArgumentException When the input string is invalid
+	 * @return The enchantment based on the input string
+	 */
+	public static Enchantment getEnchantmentFromString (String enchantment, int API_LEVEL) throws IllegalArgumentException {
+		if (API_LEVEL > 12) {//1.13+
+			//Using EnchantmentWrapper instead of the Enchantment Class since 1.6.0-pre2. TODO:Does this have any changes?
+			return EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchantment));
+		} else {
+			return Enchantment.getByName(enchantment);
+		}
 	}
 }

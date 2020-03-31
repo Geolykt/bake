@@ -12,7 +12,6 @@ import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
@@ -54,7 +53,7 @@ import net.milkbowl.vault.economy.Economy;
  * 1.5.1: Added 1.8  - 1.11 support <br>
  * 1.5.1: Code cleanup <br>
  * 1.5.2: Now automatically converts enchantment names from pre-1.13 to  post 1.12.2 and vice versa (as long as its required). <br>
- * 1.5.2: Added config parameter "bake.general.doEnchantConvert" which toggles wether to convert enchantments from 1.12 and earlier to 1.13 or later (and vice versa; will pick the correct one) <br>
+ * 1.5.2: Added config parameter "bake.general.doEnchantConvert" which toggles whether to convert enchantment from 1.12 and earlier to 1.13 or later (and vice versa; will pick the correct one) <br>
  * 1.5.2: Added vault support via the "bake.award.money" config parameter <br>
  * 1.5.2: Added config parameter "bake.award.money" which adds vault money to participants. <br>
  * 1.5.2: The record value now uses the date of the day before the record was broken, not the date of the day when the record was broken. So it will now correctly show when the most projects were completed. <br></li><li>
@@ -63,6 +62,8 @@ import net.milkbowl.vault.economy.Economy;
  * 1.6.0-pre1: 1.6.0-pre1 is <b>NOT</b> config compatible with 1.5.2 or earlier! <br>
  * 1.6.0-pre1: Fixed that everyone would get extra money, regardless of reward policy <br>
  * 1.6.0-pre1: Fixed a potential bug where the program wouldn't run correctly without Vault even though it is a recommended dependency.
+ * 1.6.0-pre2: Redid the enchantment system, hopefully removing some pesky bugs
+ * 1.6.0-pre2: Minor fixes with the record chat being broken
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
@@ -456,8 +457,9 @@ public class Bake extends JavaPlugin {
 								s = StringParser.BakeRecordString;
 								s = s.replaceAll("%INTPROG%", args[0]);
 								s = StringParser.replaceFrequent(s, player.getDisplayName());
-								this.Record = Last;
+								Bukkit.broadcastMessage(s);
 							}
+							this.Record = Last;
 							BestAmount = Today;
 						}
 						Today = 1;
@@ -566,6 +568,7 @@ public class Bake extends JavaPlugin {
 				
 				//Enchantment
 				HashMap<Enchantment,Integer> enchantments = new HashMap<Enchantment, Integer>(); 
+				
 				for (String string : getConfig().getString("bake.award."+i+".enchantment", "").split("\\|")) {
 					if (string.equals("NIL") || string.equals("")) {
 						break;
@@ -574,46 +577,45 @@ public class Bake extends JavaPlugin {
 						break;
 					}
 					
-					// Source for errors: Enchantment.getByKey only exists in spigot API level 13 or higher, but not in spigot API level 12 or lower!
-					// So the code will check which version the server is running on and then uses the appropriate function, this is doable as Java allows the use of invalid functions within the sourcecode as long as they don't get called.
-					try { //prevent stupidity of the server owner
-						//API 13+
-						if (API_LEVEL >= 13) {
-							enchantments.put(Enchantment.getByKey(NamespacedKey.minecraft(string.split("@")[0])), Integer.valueOf(string.split("@")[1]));
-						} else if (API_LEVEL == 12) {//API 12
-							//This is deprecated for Bukkit 1.13 or higher, but since it doesn't get called on these versions, it is fine
-							enchantments.put(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]));
-						}
-						//1.12 and above -> enchantment as usual
-						if (API_LEVEL >= 12) {//API 12 or higher
-							try {
-								items.addUnsafeEnchantments(enchantments);
-							} catch (IllegalArgumentException e) {
-								if (API_LEVEL <= 12) {
-									this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
-								} else {
-									this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
-								}
-							}
-							enchantments.clear();
-						//1.11 and below -> enchantment via metadata
-						} else if (API_LEVEL <= 11) { //API 11 or lower
+					try {
+						if (API_LEVEL > 11) {
+							enchantments.put(EnchantmentLib.getEnchantmentFromString(string.split("@")[0], API_LEVEL), Integer.valueOf(string.split("@")[1]));
+						} else {
 							itemM.addEnchant(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]), true);
 						}
-					} catch (NullPointerException e) {
-						getLogger().severe("Error while enchanting item: NullPointerException: it is recommended to use 1.12 enchant strings, not the 1.13 ones (default values)! If the error persists, create an issue on github or dev.bukkit.org");
-//						getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: An issue occoured during the process, see the logfiles for more information");
+					} catch (NumberFormatException e) {
+						getLogger().severe("Error while enchanting item: Number format issue, skipping line. Please make sure everything is using the 'enchantment@level' format.");
+						break;
 					} catch (java.lang.IllegalArgumentException e) {
-						getLogger().severe("Error while enchanting item: IllegalArgumentException: it is recommended to use 1.12 enchant strings, not the 1.13 ones (default values)! If the error persists, create an issue on github or dev.bukkit.org");
-//						getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: An issue occoured during the process, see the logfiles for more information");
-					}
+						getLogger().severe("Error while enchanting item: IllegalArgumentException: (" + e.getLocalizedMessage() + ") it is recommended to use 1.12 enchant strings, not the 1.13 ones (default values)! If the error persists, create an issue on github or dev.bukkit.org");
+						getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: An issue occoured during the process, see the logfiles for more information (" + e.getLocalizedMessage() + ")");
+						break;
+					} 
+					
 				}
-				if (API_LEVEL <= 11) {
+
+				if (API_LEVEL >= 12) {//API 12 or higher
+
+					//1.12 and above -> enchantment as usual
+					try {
+						items.addUnsafeEnchantments(enchantments);
+					} catch (IllegalArgumentException e) {
+						if (API_LEVEL <= 12) {
+							this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
+						} else {
+							this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
+						}
+					}
+					enchantments.clear();
+				//1.11 and below -> enchantment via metadata
+				} else { //API 11 or lower
 					items.setItemMeta(itemM);
 				}
+				
 				ItemStacks.add(items);
 			}
 		}
 		return ItemStacks;
 	}
+	
 }

@@ -14,10 +14,10 @@ import org.bukkit.inventory.ItemStack;
 public class Bake_Auxillary {
 
 	/**
-	 * The version of the plugin in the MAJOR.MINOR.PATCH format.
+	 * The version of the plugin in the MAJOR.MINOR.PATCH.ANNOTATION format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.6.0";
+	public static final String PLUGIN_VERSION = "1.6.0-pre2";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
@@ -28,26 +28,6 @@ public class Bake_Auxillary {
 	 * @since 1.5.1
 	 */
 	public static final byte PLUGIN_VERSION_ID = 0x3;
-	
-	/**
-	 * This function is in place to make it more easy for the plugin to parse the config file from an older version (config version 2) to a newer (config version 3+).
-	 * 
-	 * @param str String to be inserted that may not be usable by the newer code
-	 * @return The new String that is usable by the newer code
-	 * @since 1.4.1
-	 * @depreacted No longer used.
-	 */
-	public static String NewConfig (String str) {
-		// pre-1.4.1 -> post 1.4.0
-		str = str.replaceAll("&VERSION;", "%VERSION%");
-		str = str.replaceAll("&INTPROG;", "%INTPROG%");
-		str = str.replaceAll("&PERCENT;", "%PERCENT%");
-		str = str.replaceAll("&PLAYER;", "%PLAYER%");
-		str = str.replaceAll("&INTMAX;", "%INTMAX%");
-		// 1.4.1 -> post 1.4.1
-		str = str.replaceAll("%NEWLINE%", "\n");
-		return str;
-	}
 	
 	/**
 	 * Replaces basic placeholders (e.g.: "%PERCENT%") with a specified corresponding value. <br> Some placeholders like "%VERSION%" are replaced automatically. <br>
@@ -149,5 +129,4 @@ public class Bake_Auxillary {
 			
 		}
 	}
-	
 }
