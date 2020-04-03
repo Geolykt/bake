@@ -19,6 +19,8 @@ bake:
     doRecordSurpassBroadcast: true
     #should the server compete on a international effort (requires HTTP access to geolykt.de)
     interserver: false
+    #should the leaderboard be used?
+    useLeaderboard: true
   #amount of required wheat
   wheat_Required: 1000
   metrics:
@@ -28,7 +30,7 @@ bake:
     #amount of vault money that should be given to each participant on completion.
     money: 1000
     #maximum amount of things that can be rewarded, so if it is set to 1 only 1 itemstack will be given out, however it can also award less.
-    maximum: 420 #blaze it - honestly, I did it just for the meme
+    maximum: 10
     #the slot talked before will come handy here, please mind that it starts with 0 and ends with n - 1
     '0':
       'type': DIAMOND
@@ -79,6 +81,11 @@ bake:
       contr2: §6%PLAYER% has contributed %INTPROG% to the bake projects! We are now
         a bit closer to the rewards!
     finish2: §l§bThe bake project is finished! Everyone gets the rewards!
+    leaderboard:
+      'pre': "§b===== Bake best contributors ====="
+      'mid': "1.: %-31s :§4 %s"
+      'post': "§b==============================="
+      'unavail': "§4Bake leaderboards are not supported right now right here. Try again later."
   #don't mess with these values, well you can but it doesn't give you much
   save:
     times: 0

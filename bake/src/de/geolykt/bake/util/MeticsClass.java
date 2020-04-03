@@ -69,7 +69,7 @@ public class MeticsClass extends BukkitRunnable{
 			}
 			try {
 				in.close();
-			} catch (IOException e) {
+			} catch (Exception e) {
 				//Exception. normal?
 			}
 			return;

@@ -22,6 +22,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import de.geolykt.bake.util.EnchantmentLib;
+import de.geolykt.bake.util.Leaderboard;
 import de.geolykt.bake.util.MeticsClass;
 import de.geolykt.bake.util.StringUtils;
 import de.geolykt.bake.util.BakeData.BakeData;
@@ -57,13 +58,21 @@ import net.milkbowl.vault.economy.Economy;
  * 1.5.2: Added vault support via the "bake.award.money" config parameter <br>
  * 1.5.2: Added config parameter "bake.award.money" which adds vault money to participants. <br>
  * 1.5.2: The record value now uses the date of the day before the record was broken, not the date of the day when the record was broken. So it will now correctly show when the most projects were completed. <br></li><li>
- * 1.6.0-pre1: Completly reworked on how the code is structured. <br>
+ * 1.6.0-pre1: Completely reworked on how the code is structured. <br>
  * 1.6.0-pre1: Reworked the slot system. <br>
  * 1.6.0-pre1: 1.6.0-pre1 is <b>NOT</b> config compatible with 1.5.2 or earlier! <br>
  * 1.6.0-pre1: Fixed that everyone would get extra money, regardless of reward policy <br>
  * 1.6.0-pre1: Fixed a potential bug where the program wouldn't run correctly without Vault even though it is a recommended dependency.
  * 1.6.0-pre2: Redid the enchantment system, hopefully removing some pesky bugs
  * 1.6.0-pre2: Minor fixes with the record chat being broken
+ * 1.6.0-pre3: Added a leaderboard with the /baketop command
+ * 1.6.0-pre3: Now catching previously uncaught exception that would occur when the Internet connection is not as intended.
+ * 1.6.0-pre3: Added config parameter "bake.chat.leaderboard.post", controlling the /baketop command
+ * 1.6.0-pre3: Added config parameter "bake.chat.leaderboard.pre", controlling the /baketop command
+ * 1.6.0-pre3: Added config parameter "bake.chat.leaderboard.mid", controlling the /baketop command
+ * 1.6.0-pre3: Added config parameter "bake.general.useLeaderboard", controlling whether the /baketop command can be used
+ * 1.6.0-pre3: Added the ability to contribute as much wheat as possible in one go via "/contribute max"
+ * 1.6.0-pre3: Fixed an API bug where the parameter "material" in function "Bake_Auxillary#hasEnoughItems" would not work as intended.
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
@@ -175,8 +184,20 @@ public class Bake extends JavaPlugin {
 	 */
 	private Economy Eco = null;
 	
+	/**
+	 * Utility Class for the Leaderboard
+	 * @since 1.6.0-pre3
+	 */
+	public Leaderboard lbHandle = null;
+
+	public boolean useLeaderboard = false;
+	
 	@Override
 	public void onEnable () {
+		
+		lbHandle = new Leaderboard(this);
+		useLeaderboard = true;
+		
 		//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
 		API_LEVEL = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
 		
@@ -255,7 +276,14 @@ public class Bake extends JavaPlugin {
 		} else {
 			DataHandle = new GlobalBake(this);
 		}
+		if (!getConfig().getBoolean("bake.general.useLeaderboard", true)) {
+			useLeaderboard = false;
+		}
+		
+		
 		StringParser.cacheStrings();
+
+		lbHandle.load();
 	}
 	
 	/**
@@ -266,6 +294,7 @@ public class Bake extends JavaPlugin {
 	 * 
 	 */
 	private void readValues() {
+		
 		Last = Instant.parse(getConfig().getString("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH)));
 		Times = (short) getConfig().getInt("bake.save.times", 0);
 		if (!Last.equals(Instant.EPOCH)) {
@@ -301,7 +330,7 @@ public class Bake extends JavaPlugin {
 			getConfig().addDefault("bake.save.participantsToday", ParticipantsToday);
 			saveConfig();
 		}
-		
+		lbHandle.save();
 	}
 
 	@Override
@@ -323,48 +352,69 @@ public class Bake extends JavaPlugin {
 			}
 			return true;
 			
+		} else if (cmd.getName().equalsIgnoreCase("baketop"))
+		{
+
+			if (!useLeaderboard) {
+				sender.sendMessage(getConfig().getString("bake.chat.leaderboard.unavail", "N/A"));
+				return true;
+			}
+			sender.sendMessage(StringParser.leaderboard_pre);
+			for (int i = 1; (i <= 11) && (i <= lbHandle.lbMap.size()); i++) {
+				sender.sendMessage(String.format(StringParser.leaderboard_main ,Bukkit.getPlayer((UUID) lbHandle.SortedMap.keySet().toArray()[lbHandle.SortedMap.size()-i]).getDisplayName(),ChatColor.DARK_RED + "" + lbHandle.lbMap.get(lbHandle.SortedMap.keySet().toArray()[lbHandle.SortedMap.size()-i])));
+			}
+			sender.sendMessage(StringParser.leaderboard_post);
+			return true;
+			
 		} else if (cmd.getName().equalsIgnoreCase("contribute")) 
 		{
 			
 			if (!(sender instanceof Player)) {//Check if the user is really a player; would cause havoc, if not
 				sender.sendMessage("This command can only be run by a player.");  //Shown if not a player
-				
+				return true;
 			} else { // if the user is a player
 				
 				int amount = 0;
-				//Error logic (to remove any errors that could be avoided)
-				try {// Retrieve the amount the player wants to donate
-					amount = Integer.parseInt(args[0]);
-				} catch (NumberFormatException nfe) { // in case that that's not a real number
-					return false;
-				} catch (ArrayIndexOutOfBoundsException e) { // in case no string was entered
-					return false;
-				}
-				// if 'amount' is under 1
-				if (amount < 1) {
-					return false; //Amount is lower than 1; this would lead to an error if it is not caught
-				}
 				Player player = (Player) sender; 
-				
-				//Check whether the player has the amount of wheat in its inventory, if not, the player will be notified
-				if (Bake_Auxillary.hasEnoughItems(player,Material.WHEAT, amount)) {//Player has enough wheat in its inventory
-					Bake_Auxillary.removeItem(player, Material.WHEAT, amount);
-					BakeProgress -= amount;
-				} else {//player doesn't have enough wheat in its inventory
-					player.sendMessage(ChatColor.RED + "You don't have the specified amount of "+ Material.WHEAT.toString() + " in your inventory");
-					return true;
+				if (args.length > 0) {
+					if (args[0].equals("max")) {
+						amount = Bake_Auxillary.removeEverythingInInventoryMatchesItem(player, Material.WHEAT);
+						BakeProgress -= amount;
+						lbHandle.update(player.getUniqueId(), amount);
+					} else {
+						//Error logic (to remove any errors that could be avoided)
+						try {// Retrieve the amount the player wants to donate
+							amount = Integer.parseInt(args[0]);
+						} catch (NumberFormatException nfe) { // in case that that's not a real number
+							return false;
+						}
+						// if 'amount' is under 1
+						if (amount < 1) {
+							return false; //Amount is lower than 1; this would lead to an error if it is not caught
+						}
+						//Check whether the player has the amount of wheat in its inventory, if not, the player will be notified
+						if (Bake_Auxillary.hasEnoughItems(player,Material.WHEAT, amount)) {//Player has enough wheat in its inventory
+							Bake_Auxillary.removeItem(player, Material.WHEAT, amount);
+							BakeProgress -= amount;
+							lbHandle.update(player.getUniqueId(), amount);
+						} else {//player doesn't have enough wheat in its inventory
+							player.sendMessage(ChatColor.RED + "You don't have the specified amount of "+ Material.WHEAT.toString() + " in your inventory");
+							return true;
+						}
+					}
 				}
+				
 				
 				// Command executed
 				StringParser.cacheStrings();
 				
 				String s = StringParser.BakeContributionString_Sender;
-				s = s.replaceAll("%INTPROG%", args[0]);
+				s = s.replaceAll("%INTPROG%", String.valueOf(amount));
 				s = StringParser.replaceFrequent(s, player.getDisplayName());
 				player.sendMessage(s);
 
 				s = StringParser.BakeContributionString_Global;
-				s = s.replaceAll("%INTPROG%", args[0]);
+				s = s.replaceAll("%INTPROG%", String.valueOf(amount));
 				s = StringParser.replaceFrequent(s, player.getDisplayName());
 				getServer().broadcastMessage(s);
 				

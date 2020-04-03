@@ -27,6 +27,9 @@ public class StringUtils {
 		BakeContributionRaw_Sender = bakeInstance.getConfig().getString("bake.chat.contr2", "N/A");
 		BakeFinishRaw = bakeInstance.getConfig().getString("bake.chat.finish2", "N/A");
 		BakeRecordRaw = bakeInstance.getConfig().getString("bake.chat.recordSurpassBroadcast", "N/A");
+		leaderboard_main = bakeInstance.getConfig().getString("bake.chat.leaderboard.mid", "N/A");
+		leaderboard_pre = bakeInstance.getConfig().getString("bake.chat.leaderboard.pre", "N/A");
+		leaderboard_post = bakeInstance.getConfig().getString("bake.chat.leaderboard.post", "N/A");
 	}
 
 	/**
@@ -60,6 +63,24 @@ public class StringUtils {
 	 * Done when the record is broken. Raw String.
 	 */
 	public String BakeRecordRaw;
+	
+	/**
+	 * Used BEFORE the main leaderboard part is printed. <b>Does not make use of placeholders.</b>
+	 * @since 1.6.0-pre3
+	 */
+	public String leaderboard_pre;
+	
+	/**
+	 * The main leaderboard part. <b>Does not make use of placeholders.</b> The first %s is the player, the second the amount. Order of placeholders cannot be changed.
+	 * @since 1.6.0-pre3
+	 */
+	public String leaderboard_main;
+	
+	/**
+	 * Used AFTER the main leaderboard part is printed. <b>Does not make use of placeholders.</b>
+	 * @since 1.6.0-pre3
+	 */
+	public String leaderboard_post;
 	//-------------------------------------------------------------
 
 	/**

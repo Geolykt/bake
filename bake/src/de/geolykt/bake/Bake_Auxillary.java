@@ -1,5 +1,11 @@
 package de.geolykt.bake;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -17,7 +23,7 @@ public class Bake_Auxillary {
 	 * The version of the plugin in the MAJOR.MINOR.PATCH.ANNOTATION format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.6.0-pre2";
+	public static final String PLUGIN_VERSION = "1.6.0-pre3";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
@@ -112,7 +118,7 @@ public class Bake_Auxillary {
 				break;
 			}
 			try {
-				if (player.getInventory().getItem(i).getType() == Material.WHEAT) {
+				if (player.getInventory().getItem(i).getType() == item) {
 					if (player.getInventory().getItem(i).getAmount() > amountLeft) {
 						ItemStack is = player.getInventory().getItem(i);
 						is.setAmount(player.getInventory().getItem(i).getAmount() - amountLeft);
@@ -129,4 +135,67 @@ public class Bake_Auxillary {
 			
 		}
 	}
+	
+	/**
+	 * Returns how many items of a given kind a player has in its inventory.
+	 * @param player The player whose inventory should be checked
+	 * @param item The Material to match against
+	 * @return The amount of items that match the Material the player has in its inventory.
+	 * @since 1.6.0-pre3
+	 */
+	public static int getItemCountInInventory(Player player, Material item) {
+		int amount = 0;
+		for (int i = 0; i < player.getInventory().getSize(); i++) {
+			try {
+				if (player.getInventory().getItem(i).getType() == item) {
+					amount += player.getInventory().getItem(i).getAmount();
+				}
+			} catch (NullPointerException npe) {//This exception will be thrown upon accessing empty inventory slots, this catch is required to keep the program running
+				//Do Nothing
+			}
+		}
+		return amount;
+	}
+
+	/**
+	 * Removes every itemstack in a player's inventory that matches the Material item and returns the amount that was removed.
+	 * @param player The player whose inventory should be checked
+	 * @param item The Material to match against
+	 * @return The amount of items that were removed.
+	 * @since 1.6.0-pre3
+	 */
+	public static int removeEverythingInInventoryMatchesItem(Player player, Material item) {
+		int amount = 0;
+		for (int i = 0; i < player.getInventory().getSize(); i++) {
+			try {
+				if (player.getInventory().getItem(i).getType() == item) {
+					amount += player.getInventory().getItem(i).getAmount();
+					player.getInventory().clear(i);
+				}
+			} catch (NullPointerException npe) {//This exception will be thrown upon accessing empty inventory slots, this catch is required to keep the program running
+				//Do Nothing
+			}
+		}
+		return amount;
+	}
+	
+	/**
+	 * 
+	 * @param <K>
+	 * @param <V>
+	 * @param map
+	 * @author https://stackoverflow.com/a/2581754/10466349
+	 * @return
+	 */
+    public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
+        List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
+        list.sort(Entry.comparingByValue());
+
+        Map<K, V> result = new LinkedHashMap<>();
+        for (Entry<K, V> entry : list) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+
+        return result;
+    }
 }
