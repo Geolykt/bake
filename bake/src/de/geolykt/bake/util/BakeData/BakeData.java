@@ -18,7 +18,6 @@ import de.geolykt.bake.Bake;
 public abstract class BakeData {
 
 	protected Bake bakeInstance;
-	protected int required;
 	/**
 	 * Stores who has contributed in the current project.<br>
 	 * PlayerUUID -> Has contributed?<br>
@@ -154,11 +153,7 @@ public abstract class BakeData {
 	}
 	
 	/**
-	 * @since 1.6.0
-	 * @return Returns how much is required until the project is finished
 	 */
-	public int getRequired() {
-		return required;
 	}
 	
 	
