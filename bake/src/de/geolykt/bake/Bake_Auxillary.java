@@ -23,7 +23,7 @@ public class Bake_Auxillary {
 	 * The version of the plugin in the MAJOR.MINOR.PATCH.ANNOTATION format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.6.0-pre3";
+	public static final String PLUGIN_VERSION = "1.6.0-pre4";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
@@ -186,6 +186,7 @@ public class Bake_Auxillary {
 	 * @param map
 	 * @author https://stackoverflow.com/a/2581754/10466349
 	 * @return
+	 * @since 1.6.0-pre3
 	 */
     public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
         List<Entry<K, V>> list = new ArrayList<>(map.entrySet());

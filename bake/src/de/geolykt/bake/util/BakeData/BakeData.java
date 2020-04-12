@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import de.geolykt.bake.Bake;
@@ -18,6 +19,14 @@ import de.geolykt.bake.Bake;
 public abstract class BakeData {
 
 	protected Bake bakeInstance;
+	
+	/**
+	 * Keeps in mind how much has been contributed, rests every shutdown of the server, but does not reset when a project is finished.<br>
+	 * This may vary from implementation to implementation
+	 * @since 1.6.0-pre4
+	 */
+	protected int totalContrib = 0;
+	
 	/**
 	 * Stores who has contributed in the current project.<br>
 	 * PlayerUUID -> Has contributed?<br>
@@ -153,8 +162,39 @@ public abstract class BakeData {
 	}
 	
 	/**
+	 * @since 1.6.0-pre4
+	 * @return The total amount of wheat that has been contributed, only resets when the server shuts down (will be changed in future updates).
 	 */
+	public int getTotalContributed() {
+		return totalContrib;
 	}
 	
+	/**
+	 * @since 1.6.0-pre4
+	 * Sets the total amount of wheat that has been contributed, which only resets when the server shuts down (will be changed in future updates). Not additive.
+	 */
+	protected void setTotalContributed(int newVal) {
+		totalContrib = newVal;
+	}
+
+	/**
+	 * Keeps track of when the project is finished
+	 * @since 1.6.0-pre4
+	 * @return true if the project is finished, false if it is not. 
+	 */
+	public boolean isFinished() {
+		if (getRemaining() <= 0) {
+			return true;
+		}
+		return false;
+	}
 	
+	/**
+	 * Supplementary Function that is called when the project is finished. Does not handle things like Rewards, but resets requirements and can be used for other things.<br>
+	 * Per default called just after the isFinished() function
+	 * @since 1.6.0-pre4
+	 */
+	public void onFinish() {
+		bakeInstance.BakeProgress = bakeInstance.getConfig().getInt("bake.wheat_Required", -1);
+	}
 }

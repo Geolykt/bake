@@ -62,17 +62,25 @@ import net.milkbowl.vault.economy.Economy;
  * 1.6.0-pre1: Reworked the slot system. <br>
  * 1.6.0-pre1: 1.6.0-pre1 is <b>NOT</b> config compatible with 1.5.2 or earlier! <br>
  * 1.6.0-pre1: Fixed that everyone would get extra money, regardless of reward policy <br>
- * 1.6.0-pre1: Fixed a potential bug where the program wouldn't run correctly without Vault even though it is a recommended dependency.
- * 1.6.0-pre2: Redid the enchantment system, hopefully removing some pesky bugs
- * 1.6.0-pre2: Minor fixes with the record chat being broken
- * 1.6.0-pre3: Added a leaderboard with the /baketop command
- * 1.6.0-pre3: Now catching previously uncaught exception that would occur when the Internet connection is not as intended.
- * 1.6.0-pre3: Added config parameter "bake.chat.leaderboard.post", controlling the /baketop command
- * 1.6.0-pre3: Added config parameter "bake.chat.leaderboard.pre", controlling the /baketop command
- * 1.6.0-pre3: Added config parameter "bake.chat.leaderboard.mid", controlling the /baketop command
- * 1.6.0-pre3: Added config parameter "bake.general.useLeaderboard", controlling whether the /baketop command can be used
- * 1.6.0-pre3: Added the ability to contribute as much wheat as possible in one go via "/contribute max"
- * 1.6.0-pre3: Fixed an API bug where the parameter "material" in function "Bake_Auxillary#hasEnoughItems" would not work as intended.
+ * 1.6.0-pre1: Fixed a potential bug where the program wouldn't run correctly without Vault even though it is a recommended dependency.<br>
+ * 1.6.0-pre2: Redid the enchantment system, hopefully removing some pesky bugs<br>
+ * 1.6.0-pre2: Minor fixes with the record chat being broken<br>
+ * 1.6.0-pre3: Added a leaderboard with the /baketop command<br>
+ * 1.6.0-pre3: Now catching previously uncaught exception that would occur when the Internet connection is not as intended.<br>
+ * 1.6.0-pre3: Added config parameter "bake.chat.leaderboard.post", controlling the /baketop command<br>
+ * 1.6.0-pre3: Added config parameter "bake.chat.leaderboard.pre", controlling the /baketop command<br>
+ * 1.6.0-pre3: Added config parameter "bake.chat.leaderboard.mid", controlling the /baketop command<br>
+ * 1.6.0-pre3: Added config parameter "bake.general.useLeaderboard", controlling whether the /baketop command can be used<br>
+ * 1.6.0-pre3: Added the ability to contribute as much wheat as possible in one go via "/contribute max"<br>
+ * 1.6.0-pre3: Fixed an API bug where the parameter "material" in function "Bake_Auxillary#hasEnoughItems" would not work as intended.<br>
+ * 1.6.0-pre4: Fixed that everyone would get extra money, regardless of reward policy (Again)<br>
+ * 1.6.0-pre4: Implemented the globalBake Playing mode, which enable multiple servers to cooperate with each other, at least somewhat<br>
+ * 1.6.0-pre4: Fixed issue with the record not saving at all<br>
+ * 1.6.0-pre4: Fixed a crash that would occur when a player on /baketop is offline<br>
+ * 1.6.0-pre4: Fixed a bug where the ranking would not show up correctly and stay at 1 (is that even a bug?)<br>
+ * 1.6.0-pre4: Fixed a bug where the contribution remembering setting would be inverted, resulting in unexpected behavior<br>
+ * 1.6.0-pre4: Added an alias to the "/contribute max" command: "/contribute all"<br>
+ * 1.6.0-pre4: Implemented a feature where players that have contributed but were offline when the project finished would be rewarded as soon as they rejoin. (Can be toggled via bake.general.rewardLater)<br>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
@@ -81,10 +89,8 @@ import net.milkbowl.vault.economy.Economy;
  * ?: Added placeholder: "%BESTDATE%", which replaces the date where the fastest project was completed. <br>
  * ?: Added placeholder: "%PARTICIPANTSTODAY%", which replaces how many participants have participated today. <br>
  * ?: Added placeholder: "%PARTICIPANTSRECORD%", which replaces how many participants have contributed at most. <br>
- * ?: Added config parameter "bake.general.permremember", if set to true, the plugin will store ALL contributors and the amount they have contributed in a flat file <br>
  * </li></ul>
  * 
- * @version 1.5.2
  * @author Geolykt
  * @since 0.0.1 - SNAPSHOT
  *
@@ -179,7 +185,7 @@ public class Bake extends JavaPlugin {
 	private boolean useVault = true;
 	
 	/**
-	 * The economy this plugin uses.
+	 * The vault economy this plugin uses.
 	 * @since 1.5.2
 	 */
 	private Economy Eco = null;
@@ -194,6 +200,7 @@ public class Bake extends JavaPlugin {
 	
 	@Override
 	public void onEnable () {
+		Bukkit.getPluginManager().registerEvents(new BakeEventListener(this, getConfig().getString("bake.chat.welcomeBack", "N/A")), this);
 		
 		lbHandle = new Leaderboard(this);
 		useLeaderboard = true;
@@ -271,10 +278,10 @@ public class Bake extends JavaPlugin {
 		BakeProgress = (int) getConfig().get("bake.wheat_Required");
 
 		StringParser = new StringUtils(this);
-		if (getConfig().getBoolean("bake.general.interserver", false)) {
-			DataHandle = new LocalBake(this);
+		if (getConfig().getBoolean("bake.gbake.enable", false)) {
+			DataHandle = new GlobalBake(this,getConfig().getString("bake.gbake.update_server", "localhost"), getConfig().getString("bake.gbake.update_client", "localhost"), getConfig().getLong("bake.gbake.interval", 1000l), getConfig().getString("bake.chat.gBakeRefresh", "N/A"));
 		} else {
-			DataHandle = new GlobalBake(this);
+			DataHandle = new LocalBake(this);
 		}
 		if (!getConfig().getBoolean("bake.general.useLeaderboard", true)) {
 			useLeaderboard = false;
@@ -324,6 +331,7 @@ public class Bake extends JavaPlugin {
 		if (getConfig().getBoolean("bake.general.cnfgStore", true)) {
 			getConfig().set("bake.save.times", Times);
 			getConfig().set("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Last));
+			getConfig().set("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Record));
 			getConfig().set("bake.save.today", Today);
 			getConfig().set("bake.save.record", BestAmount);
 			getConfig().addDefault("bake.save.participants", Participants);
@@ -361,7 +369,7 @@ public class Bake extends JavaPlugin {
 			}
 			sender.sendMessage(StringParser.leaderboard_pre);
 			for (int i = 1; (i <= 11) && (i <= lbHandle.lbMap.size()); i++) {
-				sender.sendMessage(String.format(StringParser.leaderboard_main ,Bukkit.getPlayer((UUID) lbHandle.SortedMap.keySet().toArray()[lbHandle.SortedMap.size()-i]).getDisplayName(),ChatColor.DARK_RED + "" + lbHandle.lbMap.get(lbHandle.SortedMap.keySet().toArray()[lbHandle.SortedMap.size()-i])));
+				sender.sendMessage(String.format(StringParser.leaderboard_main , i, Bukkit.getOfflinePlayer((UUID) lbHandle.SortedMap.keySet().toArray()[lbHandle.SortedMap.size()-i]).getName(),ChatColor.DARK_RED + "" + lbHandle.lbMap.get(lbHandle.SortedMap.keySet().toArray()[lbHandle.SortedMap.size()-i])));
 			}
 			sender.sendMessage(StringParser.leaderboard_post);
 			return true;
@@ -377,7 +385,7 @@ public class Bake extends JavaPlugin {
 				int amount = 0;
 				Player player = (Player) sender; 
 				if (args.length > 0) {
-					if (args[0].equals("max")) {
+					if (args[0].equals("max") || args[0].equals("all")) {
 						amount = Bake_Auxillary.removeEverythingInInventoryMatchesItem(player, Material.WHEAT);
 						BakeProgress -= amount;
 						lbHandle.update(player.getUniqueId(), amount);
@@ -404,6 +412,22 @@ public class Bake extends JavaPlugin {
 					}
 				}
 				
+				// REMINDING CODEth
+				if (getConfig().getBoolean("bake.general.remember")) 
+				{
+					if (!DataHandle.projectReminderList.containsKey(player.getUniqueId())) 
+					{
+						//Player has not yet participated
+						DataHandle.projectReminderList.put(player.getUniqueId(), true);
+						Participants++;
+						if (!DataHandle.dayReminderList.containsKey(player.getUniqueId())) {
+							ParticipantsToday++;
+							DataHandle.dayReminderList.put(player.getUniqueId(), true);
+						}
+					}
+				}
+				
+				DataHandle.onContribution(amount, player);
 				
 				// Command executed
 				StringParser.cacheStrings();
@@ -418,113 +442,75 @@ public class Bake extends JavaPlugin {
 				s = StringParser.replaceFrequent(s, player.getDisplayName());
 				getServer().broadcastMessage(s);
 				
-				// REMINDING CODEth
-				if (getConfig().getBoolean("bake.general.remember")) 
-				{
-					if (!DataHandle.projectReminderList.containsKey(player.getUniqueId())) 
-					{
-						//Player has not yet participated
-						DataHandle.projectReminderList.put(player.getUniqueId(), true);
-						Participants++;
-						if (!DataHandle.dayReminderList.containsKey(player.getUniqueId())) {
-							ParticipantsToday++;
-							DataHandle.dayReminderList.put(player.getUniqueId(), true);
-						} else {}
-					}
-				}
-				
-				
-				
-				// Project finished
-				if (BakeProgress <= 0) {
-					//Finish Message
-					s = StringParser.BakeFinishString;
-					s = StringParser.replaceFrequent(s, player.getDisplayName());
-					getServer().broadcastMessage(s);
-					
-					//Item reward process
-					ArrayList<ItemStack> rewards = rollLootTable();
-					//Trim the Array to not overshoot the maximum
-					if (rewards.size()>getConfig().getInt("bake.award.maximum", 0)) {
-						for (int i = rewards.size(); i > getConfig().getInt("bake.award.maximum", 0); i--) {
-							rewards.remove(i);
-						}
-					}
-					
-					if (getConfig().getBoolean("bake.general.remember")) {
-						for (ItemStack stack : rewards) {
-							//send item to the players
-							for (Player players : getServer().getOnlinePlayers()) {
-								if (players.getInventory().firstEmpty() == -1) {
-									continue;
-								}
-								players.getInventory().addItem(stack);
-							}
-						}
-					} else {
-						for (UUID playerUUID : DataHandle.projectReminderList.keySet()) {
-							if (!Bukkit.getPlayer(playerUUID).isOnline() && DataHandle.projectReminderList.get(playerUUID)) {
-								DataHandle.notRewarded.add(playerUUID);
-								DataHandle.projectReminderList.remove(playerUUID);
-							}
-						}
-						for (Player players : getServer().getOnlinePlayers()) {
-							if (DataHandle.projectReminderList.getOrDefault(players.getUniqueId(), false)) {
-
-								for (ItemStack stack : rewards) {
-									players.getInventory().addItem(stack);
-								}
-								DataHandle.projectReminderList.remove(players.getUniqueId());
-							}
-						}
-					}
-
-					if (useVault) {
-						double moneyAmount = getConfig().getDouble("bake.award.money", 0.0);
-						for (Player players: getServer().getOnlinePlayers()) {
-							Eco.depositPlayer(players, moneyAmount);
-						}
-					}
-						
-					//Bake project finished 
-					BakeProgress = getConfig().getInt("bake.wheat_Required");//reset progress
-					if (getConfig().getBoolean("bake.general.deleteRemembered")) {//Clear the list of contributors
-						DataHandle.projectReminderList.clear();
-					}
-					Times++;
-						
-					DateTimeFormatter format = DateTimeFormatter.ISO_LOCAL_DATE.withLocale(Locale.UK)
-								                                                   .withZone(ZoneId.systemDefault());
-					//If the two ISO Local Dates are the same, then the amount of projects is increased, otherwise it will be reset to 1 (since the project got completed)
-					if (format.format(Last).equals(format.format(Instant.now()))) {
-						//same date
-						Today++;
-					} else {
-						//different date. If the record is lower than what was archived the day before, then the record gets overridden with the amount of stuff done the day before
-						if (Today > BestAmount) {
-							if (getConfig().getBoolean("bake.general.doRecordSurpassBroadcast", true)) {
-
-								s = StringParser.BakeRecordString;
-								s = s.replaceAll("%INTPROG%", args[0]);
-								s = StringParser.replaceFrequent(s, player.getDisplayName());
-								Bukkit.broadcastMessage(s);
-							}
-							this.Record = Last;
-							BestAmount = Today;
-						}
-						Today = 1;
-						ParticipantsToday = 0;
-						DataHandle.dayReminderList.clear();
-					}
-					Participants = 0;
-					Last = Instant.now();
-					saveValues();	
+				if (DataHandle.isFinished()) {
+					forceFinish(player.getDisplayName());
 				}
 				StringParser.cacheStrings();
 			}
 			return true;
 		}
 		return false;
+	}
+	
+	/**
+	 * Rewards ONLINE players that have been marked in the DataHandle.projectReminderList HashMap via the default set reward mechanisms & removes players that have been rewarded from that list afterwards. <br>
+	 * Does not reward OFFLINE players that have been marked in the DataHandle.projectReminderList HashMap, but removes it from the Map and inserts them in the DataHandle.notRewarded HashMap.
+	 * Note: the automatic removal feature is prone to not work
+	 * @since 1.6.0-pre4
+	 */
+	public void doItemRewardProcess () {
+		//Item reward process
+		ArrayList<ItemStack> rewards = rollLootTable();
+		
+		//Trim the Array to not overshoot the maximum
+		if (rewards.size()>getConfig().getInt("bake.award.maximum", 0)) {
+			for (int i = rewards.size(); i > getConfig().getInt("bake.award.maximum", 0); i--) {
+				rewards.remove(i);
+			}
+		}
+		
+		if (getConfig().getBoolean("bake.general.remember")) {
+			double moneyAmount = 0.0;
+			if (useVault) {
+				moneyAmount = getConfig().getDouble("bake.award.money", 0.0);
+			}
+			for (UUID playerUUID : DataHandle.projectReminderList.keySet()) {
+				if (!Bukkit.getOfflinePlayer(playerUUID).isOnline() && DataHandle.projectReminderList.get(playerUUID)) {
+					DataHandle.notRewarded.add(playerUUID);
+					DataHandle.projectReminderList.remove(playerUUID);
+				}
+			}
+			for (Player players : getServer().getOnlinePlayers()) {
+				if (DataHandle.projectReminderList.getOrDefault(players.getUniqueId(), false)) {
+
+					for (ItemStack stack : rewards) {
+						players.getInventory().addItem(stack);
+					}
+					if (useVault) {
+						Eco.depositPlayer(players, moneyAmount);
+					}
+					DataHandle.projectReminderList.put(players.getUniqueId(), false);
+					DataHandle.projectReminderList.remove(players.getUniqueId());
+				}
+			}
+		} else {
+			for (ItemStack stack : rewards) {
+				//send item to the players
+				for (Player players : getServer().getOnlinePlayers()) {
+					if (players.getInventory().firstEmpty() == -1) {
+						continue;
+					}
+					players.getInventory().addItem(stack);
+				}
+			}
+			if (useVault) {
+				double moneyAmount = getConfig().getDouble("bake.award.money", 0.0);
+				for (Player players: getServer().getOnlinePlayers()) {
+					Eco.depositPlayer(players, moneyAmount);
+				}
+			}
+		}
+
 	}
 	
 	/**
@@ -571,7 +557,8 @@ public class Bake extends JavaPlugin {
 	 */
 	private boolean setupEconomy() {
         try {
-        	Class<?> clazz = net.milkbowl.vault.economy.Economy.class;
+        	@SuppressWarnings("unused") //It's actually used
+			Class<?> clazz = net.milkbowl.vault.economy.Economy.class;
         	RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         	if (economyProvider != null) {
         		Eco = economyProvider.getProvider();
@@ -668,4 +655,85 @@ public class Bake extends JavaPlugin {
 		return ItemStacks;
 	}
 	
+	/**
+	 * Force-finishes the project ignoring its requirements. Rewards are handed out as usual.
+	 * @since 1.6.0-pre4
+	 * @param playername Used to replace the %PLAYER% placeholder
+	 */
+	public void forceFinish(String playername) {
+
+		// Project finished
+		DataHandle.onFinish();
+			
+		//Finish Message
+		String s = StringParser.BakeFinishString;
+		s = StringParser.replaceFrequent(s, playername);
+		getServer().broadcastMessage(s);
+			
+		doItemRewardProcess();
+				
+		//Bake project finished 
+		if (getConfig().getBoolean("bake.general.deleteRemembered")) {//Clear the list of contributors
+			DataHandle.projectReminderList.clear();
+		}
+		Times++;
+				
+		DateTimeFormatter format = DateTimeFormatter.ISO_LOCAL_DATE.withLocale(Locale.UK)
+						                                                   .withZone(ZoneId.systemDefault());
+			
+		//If the two ISO Local Dates are the same, then the amount of projects is increased, otherwise it will be reset to 1 (since the project got completed)
+		if (format.format(Last).equals(format.format(Instant.now()))) {
+		//same date
+			Today++;
+		} else {
+			//different date. 
+			forceRecordSurpassCheck(playername);
+			Today = 1;
+			ParticipantsToday = 0;
+			DataHandle.dayReminderList.clear();
+		}
+		Participants = 0;
+		Last = Instant.now();
+		saveValues();	
+	}
+	
+	/**
+	 * Used to forcefully reward a player through default algorithms. Note: some differences between the two scripts may exist, so they aren't really 100% the same-
+	 * @since 1.6.0-pre4
+	 * @param player The player to receive the rewards
+	 */
+	public void rewardPlayer(Player player) {
+
+		//Item reward process
+		ArrayList<ItemStack> rewards = rollLootTable();
+		
+		//Trim the Array to not overshoot the maximum
+		if (rewards.size()>getConfig().getInt("bake.award.maximum", 0)) {
+			for (int i = rewards.size(); i > getConfig().getInt("bake.award.maximum", 0); i--) {
+				rewards.remove(i);
+			}
+		}
+		for (ItemStack stack : rewards) {
+			player.getInventory().addItem(stack);
+		}
+		if (useVault) {
+			Eco.depositPlayer(player, getConfig().getDouble("bake.award.money", 0.0));
+		}
+	}
+	
+	/**
+	 * Forces a check whether the record was broken or not and takes appropriate actions
+	 * @since 1.6.0-pre4
+	 * @param playername Replaces %player%
+	 */
+	public void forceRecordSurpassCheck(String playername) {
+		//If the record is lower than what was archived the day before, then the record gets overridden with the amount of stuff done the day before
+		if (Today > BestAmount) {
+			if (getConfig().getBoolean("bake.general.doRecordSurpassBroadcast", true)) {
+				Bukkit.broadcastMessage(StringParser.replaceFrequent(StringParser.BakeRecordString, playername));
+			}
+			this.Record = Last;
+			BestAmount = Today;
+		}
+	}
 }

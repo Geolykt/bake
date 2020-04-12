@@ -13,14 +13,14 @@ bake:
     noMeddle: false
     #leave it be, setting it to false will break almost everything
     cnfgStore: true
-    #Should enchants get automatically converted (might fix bugs connected to enchants, but can cause longer starting times.)
+    #Should enchants get automatically converted ("might" fix bugs connected to enchants, but can cause longer starting times or even cause them.)
     doEnchantConvert: true
     #should a broadcast be done when the day's record is broken?
     doRecordSurpassBroadcast: true
-    #should the server compete on a international effort (requires HTTP access to geolykt.de)
-    interserver: false
     #should the leaderboard be used?
     useLeaderboard: true
+    #should the player we rewarded when they rejoin after they contributed and the project was finished in their absence?
+    rewardLater: true
   #amount of required wheat
   wheat_Required: 1000
   metrics:
@@ -83,9 +83,11 @@ bake:
     finish2: §l§bThe bake project is finished! Everyone gets the rewards!
     leaderboard:
       'pre': "§b===== Bake best contributors ====="
-      'mid': "1.: %-31s :§4 %s"
+      'mid': "%d.: %-31s :§4 %s"
       'post': "§b==============================="
       'unavail': "§4Bake leaderboards are not supported right now right here. Try again later."
+    gBakeRefresh: "§4[BAKE] §6 Other servers have contributed %INTPROG%!"
+    welcomeBack: "§4[BAKE] During your absence the Bake project has been finished! As a contributor, you get some rewards!"
   #don't mess with these values, well you can but it doesn't give you much
   save:
     times: 0
@@ -95,3 +97,9 @@ bake:
     today: 0
     participants: 0
     participantsToday: 0
+  gbake:
+    #should the server compete on a international effort (requires HTTP access to the pointed update sites)
+    enable: false
+    update_server: 'http://localhost/globalbakeServer.php'
+    update_client: 'http://localhost/gbakeRefresh.php'
+    interval: 1000
