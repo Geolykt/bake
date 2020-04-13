@@ -87,7 +87,7 @@ bake:
       'post': "§b==============================="
       'unavail': "§4Bake leaderboards are not supported right now right here. Try again later."
     gBakeRefresh: "§4[BAKE] §6 Other servers have contributed %INTPROG%!"
-    welcomeBack: "§4[BAKE] During your absence the Bake project has been finished! As a contributor, you get some rewards!"
+    welcomeBack: "§6[BAKE] During your absence the Bake project has been finished! As a contributor, you get some rewards!"
   #don't mess with these values, well you can but it doesn't give you much
   save:
     times: 0

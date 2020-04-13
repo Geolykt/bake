@@ -81,6 +81,7 @@ import net.milkbowl.vault.economy.Economy;
  * 1.6.0-pre4: Fixed a bug where the contribution remembering setting would be inverted, resulting in unexpected behavior<br>
  * 1.6.0-pre4: Added an alias to the "/contribute max" command: "/contribute all"<br>
  * 1.6.0-pre4: Implemented a feature where players that have contributed but were offline when the project finished would be rewarded as soon as they rejoin. (Can be toggled via bake.general.rewardLater)<br>
+ * 1.6.0-pre5: Improved debugging when Vault economies don't work as intended<br>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
@@ -487,7 +488,13 @@ public class Bake extends JavaPlugin {
 						players.getInventory().addItem(stack);
 					}
 					if (useVault) {
-						Eco.depositPlayer(players, moneyAmount);
+						try {
+							Eco.depositPlayer(players, moneyAmount);
+						} catch (Exception e) {
+							useVault = false;
+							e.printStackTrace();
+							getLogger().severe("[BAKE] Totally not a mistake on my part. You should dispute with your economy plugin!");
+						}
 					}
 					DataHandle.projectReminderList.put(players.getUniqueId(), false);
 					DataHandle.projectReminderList.remove(players.getUniqueId());
@@ -717,7 +724,13 @@ public class Bake extends JavaPlugin {
 			player.getInventory().addItem(stack);
 		}
 		if (useVault) {
-			Eco.depositPlayer(player, getConfig().getDouble("bake.award.money", 0.0));
+			try {
+				Eco.depositPlayer(player, getConfig().getDouble("bake.award.money", 0.0));
+			} catch (Exception e) {
+				useVault = false;
+				e.printStackTrace();
+				getLogger().severe("[BAKE] Totally not a mistake on my part. You should dispute with your economy plugin!");
+			}
 		}
 	}
 	
