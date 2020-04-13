@@ -217,8 +217,8 @@ public class Bake extends JavaPlugin {
 			metricsRunnable.State = 0x01;
 			getConfig().set("bake.firstRun", false);
 			saveConfig();
-		} else if (!getConfig().getBoolean("bake.metrics.opt-out", true)) {
-			metricsRunnable.State = 0x00;
+		} else if (getConfig().getBoolean("bake.metrics.opt-out", true)) {
+			metricsRunnable.State = 0x02;
 		} else {
 			metricsRunnable.State = 0x02;
 		}

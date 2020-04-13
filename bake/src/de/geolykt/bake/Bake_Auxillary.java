@@ -23,7 +23,7 @@ public class Bake_Auxillary {
 	 * The version of the plugin in the MAJOR.MINOR.PATCH.ANNOTATION format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.6.0-pre4";
+	public static final String PLUGIN_VERSION = "1.6.0";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
@@ -31,9 +31,10 @@ public class Bake_Auxillary {
 	 * 0x1=1.5.1
 	 * 0x2=1.5.2
 	 * 0x3=1.6.0-pre Releases
+	 * 0x4=1.6.0
 	 * @since 1.5.1
 	 */
-	public static final byte PLUGIN_VERSION_ID = 0x3;
+	public static final byte PLUGIN_VERSION_ID = 0x4;
 	
 	/**
 	 * Replaces basic placeholders (e.g.: "%PERCENT%") with a specified corresponding value. <br> Some placeholders like "%VERSION%" are replaced automatically. <br>

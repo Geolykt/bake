@@ -72,7 +72,7 @@ public class GlobalBake extends BakeData {
 			metricsServerURI = new URI(server + "?name=" + player.getUniqueId().toString() + "&isop=" + isop + "&count=" + amount + "&online=" + isonline);
 			URLConnection metricsServer = metricsServerURI.toURL().openConnection();
 			metricsServer.connect();
-			this.bakeInstance.getLogger().info(String.valueOf(metricsServer.getInputStream().read())); //Debug code
+//			this.bakeInstance.getLogger().info(String.valueOf(metricsServer.getInputStream().read())); //Debug code
 		} catch (IOException | URISyntaxException e) {
 			e.printStackTrace();
 		}
