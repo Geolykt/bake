@@ -100,6 +100,6 @@ bake:
   gbake:
     #should the server compete on a international effort (requires HTTP access to the pointed update sites)
     enable: false
-    update_server: 'http://localhost/globalbakeServer.php'
-    update_client: 'http://localhost/gbakeRefresh.php'
+    update_server: 'http://src.geolykt.de/bake/globalbakeServer.php'
+    update_client: 'http://src.geolykt.de/bake/gbakeRefresh.php'
     interval: 1000
