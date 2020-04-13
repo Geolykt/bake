@@ -1,6 +1,6 @@
 name: bake
 main: de.geolykt.bake.Bake
-version: 1.5.2
+version: 1.6.0
 author: Geolykt
 api-version: 1.15
 softdepend: [Vault] #Vault for money stuff
@@ -21,6 +21,11 @@ commands:
     usage: "Usage: /bakestats"
     permission: bake.command.stats
     permission-message: You have insufficent permissions, you need bake.command.stats for that command, contact a server administrator if you belive that this is an error
+  baketop:
+    description: Lists the best contributors
+    usage: "Usage: /baketop"
+    permission: bake.command.top
+    permission-message: You have insufficent permissions, you need bake.command.top for that command, contact a server administrator if you belive that this is an error
 permissions:
   bake.command.bake:
     description: allows the /bake command
@@ -30,4 +35,7 @@ permissions:
     default: true
   bake.command.stats:
     description: allows the /bakestats command
+    default: true
+  bake.command.top:
+    description: allows the /baketop command
     default: true
