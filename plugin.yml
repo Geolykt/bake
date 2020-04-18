@@ -30,6 +30,9 @@ permissions:
   bake.command.bake:
     description: allows the /bake command
     default: true
+  bake.command.admin:
+    description: allows the /bake admin subcommand or the /bake stop subcommand
+    default: op
   bake.command.contribute:
     description: allows the /contribute command
     default: true

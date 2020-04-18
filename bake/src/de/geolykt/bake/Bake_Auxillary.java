@@ -31,10 +31,11 @@ public class Bake_Auxillary {
 	 * 0x1=1.5.1
 	 * 0x2=1.5.2
 	 * 0x3=1.6.0-pre Releases
-	 * 0x4=1.6.0
+	 * 0x4=1.6.0 (unused?)
+	 * 0x5=1.6.1
 	 * @since 1.5.1
 	 */
-	public static final byte PLUGIN_VERSION_ID = 0x4;
+	public static final byte PLUGIN_VERSION_ID = 0x5;
 	
 	/**
 	 * Replaces basic placeholders (e.g.: "%PERCENT%") with a specified corresponding value. <br> Some placeholders like "%VERSION%" are replaced automatically. <br>

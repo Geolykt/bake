@@ -68,8 +68,8 @@ bake:
       'display_name': ''
       'enchantment': ''
   chat:
-    recordSurpassBroadcast: §6The previous record of %RECORD% on the %RECORDDATE%
-      was broken by the new record of %TODAY%!
+    recordSurpassBroadcast: '§6[BAKE] The previous record of %RECORD% on the %RECORDDATE%
+      was broken by the new record of %TODAY%!'
     progress2: "§b=========== Running Bake %VERSION%  ============ \n §bThe Bake Progress\
       \ is: %INTPROG% of %INTMAX% \n §bSo we are %PERCENT% % done! Keep up! \n§b ======================================="
     bakestats: "§b========================================\n The bake project was\
@@ -78,8 +78,8 @@ bake:
       b participated in the recent project.\n§b========================================"
     contr2: '%INTPROG% was added to the project! Thanks!'
     global:
-      contr2: §6%PLAYER% has contributed %INTPROG% to the bake projects! We are now
-        a bit closer to the rewards!
+      contr2: '§6[BAKE]§r%PLAYER%§r§6 has contributed %INTPROG% to the bake projects! We are now
+        a bit closer to the rewards!'
     finish2: §l§bThe bake project is finished! Everyone gets the rewards!
     leaderboard:
       'pre': "§b===== Bake best contributors ====="
