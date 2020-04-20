@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -82,6 +83,10 @@ import net.milkbowl.vault.economy.Economy;
  * 1.6.0-pre4: Added an alias to the "/contribute max" command: "/contribute all"<br>
  * 1.6.0-pre4: Implemented a feature where players that have contributed but were offline when the project finished would be rewarded as soon as they rejoin. (Can be toggled via bake.general.rewardLater)<br>
  * 1.6.0-pre5: Improved debugging when Vault economies don't work as intended<br>
+ * 1.6.1: Added the Bake administrator control panel, used to cheat the system<br>
+ * 1.6.1: Updated default strings<br>
+ * 1.6.1: Fixed that the metrics wouldn't run at all<br>
+ * 1.6.1: Now autocompletes on Tab <br>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
@@ -220,14 +225,14 @@ public class Bake extends JavaPlugin {
 		} else if (getConfig().getBoolean("bake.metrics.opt-out", true)) {
 			metricsRunnable.State = 0x02;
 		} else {
-			metricsRunnable.State = 0x02;
+			metricsRunnable.State = 0x00;
 		}
 		metricsRunnable.runTaskLater(this, 1L);
 		
 		if (getConfig().getDouble("bake.award.money", 0.0) > 0.0) {
 			if (!setupEconomy()) {
 				//Not hooked into Vault.
-				getLogger().warning("Vault (or an Economy plugin) was not installed or initiated too late. This is not much of a problem, but money won't be awarded.");
+				getLogger().warning(ChatColor.YELLOW + "Vault (or an Economy plugin) was not installed or initiated too late. This is not much of a problem, but money won't be awarded.");
 			}
 		} else {
 			//Using Vault would make no sense as no money would be sent.
@@ -239,11 +244,11 @@ public class Bake extends JavaPlugin {
 			// Config Convert Process
 			if (getConfig().getInt("bake.general.configVersion", -1) > 5) {
 				//Notify User
-				getLogger().log(Level.WARNING, "The config version is newer than it should be! The plugin will try to run normal, but it might break  the config file!");
+				getLogger().log(Level.WARNING, ChatColor.YELLOW + "The config version is newer than it should be! The plugin will try to run normal, but it might break  the config file!");
 				//the code can't do anything here, pray that it will work anyway.
 			} else if (getConfig().getInt("bake.general.configVersion", -1) < 5) {
 				//Stricly incompatible version (due to the award system completly being reworked, would be too tedious to create an autopatcher.
-				getLogger().severe("The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually! Shutting down...");
+				getLogger().severe(ChatColor.DARK_RED + "The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually! Shutting down...");
 				getPluginLoader().disablePlugin(this);
 			}
 			
@@ -354,7 +359,26 @@ public class Bake extends JavaPlugin {
 			return true;
 		} else if (cmd.getName().equalsIgnoreCase("bake")) 
 		{
-			if (sender instanceof Player) {
+			if (args.length != 0) {
+				if (args[0].equalsIgnoreCase("admin")) {
+					if (sender.hasPermission("bake.command.admin")) {
+						DataHandle.adminCP(args, sender);
+					} else {
+						sender.sendMessage(ChatColor.RED + "[BAKE] You don't have sufficent permissions to use said command.");
+					}
+				} else if (args[0].equals("version")) {
+					sender.sendMessage(ChatColor.AQUA + "Bake uses version " + Bake_Auxillary.PLUGIN_VERSION + " with implementation " + DataHandle.getImplementationName());
+				} else if (args[0].equals("stop")) {
+					if (sender.hasPermission("bake.command.admin")) {
+						getServer().broadcastMessage(ChatColor.DARK_RED + "[Bake] Shutting down...");
+						getPluginLoader().disablePlugin(this);
+					} else {
+						sender.sendMessage(ChatColor.RED + "[BAKE] You don't have sufficent permissions to use said command.");
+					}
+				} else {
+					sender.sendMessage("Subcommand unknown.");
+				}
+			} else if (sender instanceof Player) {
 				DataHandle.onBakeCommand((Player)sender);
 			} else {
 				sender.sendMessage("Following update 1.6.0, you must be a player to call that command");
@@ -663,7 +687,8 @@ public class Bake extends JavaPlugin {
 	}
 	
 	/**
-	 * Force-finishes the project ignoring its requirements. Rewards are handed out as usual.
+	 * Force-finishes the project ignoring its requirements. Rewards are handed out as usual.<br>
+	 * DOES NOT RESET Requirements.
 	 * @since 1.6.0-pre4
 	 * @param playername Used to replace the %PLAYER% placeholder
 	 */
@@ -748,5 +773,31 @@ public class Bake extends JavaPlugin {
 			this.Record = Last;
 			BestAmount = Today;
 		}
+	}
+	
+	@Override
+	public List<String> onTabComplete(CommandSender sender, Command command,
+			String alias, String[] args) {
+		if (command.getName().equalsIgnoreCase("bake")) {
+			if (args.length == 1) {//So no ArrayIndexOutOfBounds Exceptions would occur
+				if (args[0].contains("admin")) {
+					return DataHandle.onTabComplete(sender, command, alias, args);
+				} else {
+					List<String> list = new ArrayList<String>();
+					list.add("admin");
+					list.add("version");
+					list.add("stop");
+					return list;
+					
+				}
+			}
+		} else if (command.getName().equalsIgnoreCase("contribute")) {
+			List<String> list = new ArrayList<String>();
+			list.add("max");
+			list.add("1");
+			list.add("all");
+			return list;
+		}
+		return super.onTabComplete(sender, command, alias, args);
 	}
 }

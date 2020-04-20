@@ -8,6 +8,8 @@ import java.net.URLConnection;
 import java.time.Instant;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -120,6 +122,16 @@ public class GlobalBake extends BakeData {
 	@Override
 	public int getRemaining() {
 		return bakeInstance.getConfig().getInt("bake.wheat_Required", -1) - getProgress();
+	}
+	
+	@Override
+	public void adminCP(String[] args, CommandSender sender) {
+		sender.sendMessage(ChatColor.DARK_RED + "Cheating is disabled under this mode.");
+	}
+
+	@Override
+	public String getImplementationName() {
+		return "default_global";
 	}
 }
 /**

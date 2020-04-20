@@ -1,6 +1,6 @@
 name: bake
 main: de.geolykt.bake.Bake
-version: 1.6.0
+version: 1.6.1
 author: Geolykt
 api-version: 1.15
 softdepend: [Vault] #Vault for money stuff
@@ -30,6 +30,9 @@ permissions:
   bake.command.bake:
     description: allows the /bake command
     default: true
+  bake.command.admin:
+    description: allows the /bake admin subcommand or the /bake stop subcommand
+    default: op
   bake.command.contribute:
     description: allows the /contribute command
     default: true

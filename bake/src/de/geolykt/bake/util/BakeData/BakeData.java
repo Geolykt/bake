@@ -3,8 +3,12 @@ package de.geolykt.bake.util.BakeData;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import de.geolykt.bake.Bake;
@@ -195,5 +199,28 @@ public abstract class BakeData {
 	 */
 	public void onFinish() {
 		bakeInstance.BakeProgress = bakeInstance.getConfig().getInt("bake.wheat_Required", -1);
+	}
+
+	/**
+	 * Handle function for the Administrator Control Panel for the Bake Plugin. Allows admins to cheat the game.
+	 * @param args Arguments passed, args[0] should be set to "admin"
+	 * @param sender The sender that sent the request, the sender in question should have the required permissions to use the Control Panel.
+	 * @since 1.6.1
+	 */
+	public void adminCP(String[] args, CommandSender sender) {
+		sender.sendMessage(ChatColor.RED + "This is subcommand is unimplemented. You may want to update the add-ons to a version supporting Bake 1.6.1 or later.");
+		
+	}
+	
+	/**
+	 * Override highly recommended as it will be used from 1.6.1 onwards for /bake version
+	 * @return The name of the implementation, or "unknown" if the implementation doesn't support this method
+	 */
+	public String getImplementationName() {
+		return "unknown";
+	}
+
+	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+		return new ArrayList<String>();
 	}
 }
