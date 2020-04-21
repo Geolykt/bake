@@ -21,6 +21,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import de.geolykt.bake.util.EnchantmentLib;
 import de.geolykt.bake.util.Leaderboard;
@@ -87,6 +88,7 @@ import net.milkbowl.vault.economy.Economy;
  * 1.6.1: Updated default strings<br>
  * 1.6.1: Fixed that the metrics wouldn't run at all<br>
  * 1.6.1: Now autocompletes on Tab <br>
+ * 1.6.2: Changed the way the plugin reacts to an incompatible config version<br>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
@@ -248,8 +250,8 @@ public class Bake extends JavaPlugin {
 				//the code can't do anything here, pray that it will work anyway.
 			} else if (getConfig().getInt("bake.general.configVersion", -1) < 5) {
 				//Stricly incompatible version (due to the award system completly being reworked, would be too tedious to create an autopatcher.
-				getLogger().severe(ChatColor.DARK_RED + "The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually! Shutting down...");
-				getPluginLoader().disablePlugin(this);
+				getLogger().severe(ChatColor.DARK_RED + "The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually!");
+				new BukkitRunnable() {@Override public void run() {getServer().broadcastMessage(ChatColor.DARK_RED + "[BAKE] Incompatible configuration file detected! Please update the configuration file manually!\n Details to fix the issue: https://youtu.be/K0k2biAwEa0");}}.runTaskTimer(this, 1l, 6000l);
 			}
 			
 			//1.5.2 Enchant conversion
