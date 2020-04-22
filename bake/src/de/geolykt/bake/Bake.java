@@ -251,7 +251,7 @@ public class Bake extends JavaPlugin {
 			} else if (getConfig().getInt("bake.general.configVersion", -1) < 5) {
 				//Stricly incompatible version (due to the award system completly being reworked, would be too tedious to create an autopatcher.
 				getLogger().severe(ChatColor.DARK_RED + "The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually!");
-				new BukkitRunnable() {@Override public void run() {getServer().broadcastMessage(ChatColor.DARK_RED + "[BAKE] Incompatible configuration file detected! Please update the configuration file manually!\n Details to fix the issue: https://youtu.be/K0k2biAwEa0");}}.runTaskTimer(this, 1l, 6000l);
+				new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + "Configuration Version outdated. Consider updating it manually for the time being.");}}.runTask(this);
 			}
 			
 			//1.5.2 Enchant conversion
