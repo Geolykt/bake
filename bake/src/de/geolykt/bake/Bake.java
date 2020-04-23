@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -21,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import de.geolykt.bake.util.EnchantmentLib;
 import de.geolykt.bake.util.Leaderboard;
@@ -87,6 +89,9 @@ import net.milkbowl.vault.economy.Economy;
  * 1.6.1: Updated default strings<br>
  * 1.6.1: Fixed that the metrics wouldn't run at all<br>
  * 1.6.1: Now autocompletes on Tab <br>
+ * 1.6.2: Changed the way the plugin reacts to an incompatible config version<br>
+ * 1.6.2: Added bStats<br>
+ * 1.6.2: Converted to maven<br>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
@@ -206,6 +211,7 @@ public class Bake extends JavaPlugin {
 	
 	@Override
 	public void onEnable () {
+		
 		Bukkit.getPluginManager().registerEvents(new BakeEventListener(this, getConfig().getString("bake.chat.welcomeBack", "N/A")), this);
 		
 		lbHandle = new Leaderboard(this);
@@ -216,7 +222,7 @@ public class Bake extends JavaPlugin {
 		
 		// Configuration initialization
 		saveDefaultConfig();
-		
+
 		MeticsClass metricsRunnable = new MeticsClass();
 		if (getConfig().getBoolean("bake.firstRun", true)) {
 			metricsRunnable.State = 0x01;
@@ -226,6 +232,7 @@ public class Bake extends JavaPlugin {
 			metricsRunnable.State = 0x02;
 		} else {
 			metricsRunnable.State = 0x00;
+			metricsRunnable.plugin = this;
 		}
 		metricsRunnable.runTaskLater(this, 1L);
 		
@@ -248,8 +255,8 @@ public class Bake extends JavaPlugin {
 				//the code can't do anything here, pray that it will work anyway.
 			} else if (getConfig().getInt("bake.general.configVersion", -1) < 5) {
 				//Stricly incompatible version (due to the award system completly being reworked, would be too tedious to create an autopatcher.
-				getLogger().severe(ChatColor.DARK_RED + "The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually! Shutting down...");
-				getPluginLoader().disablePlugin(this);
+				getLogger().severe(ChatColor.DARK_RED + "The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually!");
+				new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + "Configuration Version outdated. Consider updating it manually for the time being.");}}.runTask(this);
 			}
 			
 			//1.5.2 Enchant conversion
@@ -340,6 +347,7 @@ public class Bake extends JavaPlugin {
 			getConfig().set("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Record));
 			getConfig().set("bake.save.today", Today);
 			getConfig().set("bake.save.record", BestAmount);
+			getConfig().set("bake.save.all", DataHandle.getTotalContributed());
 			getConfig().addDefault("bake.save.participants", Participants);
 			getConfig().addDefault("bake.save.participantsToday", ParticipantsToday);
 			saveConfig();
@@ -799,5 +807,22 @@ public class Bake extends JavaPlugin {
 			return list;
 		}
 		return super.onTabComplete(sender, command, alias, args);
+	}
+
+	public Callable<String> metricsWheatAmount() {
+		int allTime = getConfig().getInt("bake.save.all", -1);
+		if (allTime < 1) {
+			return () -> "0";
+		} else if (allTime < 200){
+			return () -> "1-199";
+		} else if (allTime < 2000){
+			return () -> "200-1999";
+		} else if (allTime <= 20000){
+			return () -> "2000-20000";
+		} else if (allTime <= 50000){
+			return () -> "20001-50000";
+		} else  {
+			return () -> ">50000";
+		}
 	}
 }

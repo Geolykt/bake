@@ -6,14 +6,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLConnection;
 
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import de.geolykt.bake.Bake;
 import de.geolykt.bake.Bake_Auxillary;
 
 /**
  * Used for metics and update checking by the Bake plugin.
- * @since 1.6.0
+ * @since 1.6.0, last revision: 1.6.2
  * @author Geolykt
  *
  */
@@ -25,6 +27,8 @@ public class MeticsClass extends BukkitRunnable{
 	 * 0x02 = Opt out (Don't start)<br>
 	 */
 	public byte State;
+	
+	public Bake plugin;
 	
 	/**
 	 * @throws IllegalStateException in case MeticsClass.State isn't 0x00, 0x01 or 0x02.
@@ -72,6 +76,10 @@ public class MeticsClass extends BukkitRunnable{
 			} catch (Exception e) {
 				//Exception. normal?
 			}
+			Metrics metrics = new Metrics(plugin, 7279);
+			metrics.addCustomChart(new Metrics.SimplePie("amount_of_wheat_contributed", plugin.metricsWheatAmount()));
+			metrics.addCustomChart(new Metrics.SimplePie("bakedata_implementations",() -> plugin.DataHandle.getImplementationName()));
+			
 			return;
 		case 0x01:
 			Bukkit.getLogger().info("Bake uses it's own metrics system. To honor privacy, it will not contact it on the first run or if \"bake.metrics.opt-out\" is set to true.");

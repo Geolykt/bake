@@ -1,10 +1,10 @@
 name: bake
 main: de.geolykt.bake.Bake
-version: 1.6.1
+version: 1.6.2
 author: Geolykt
 api-version: 1.15
 softdepend: [Vault] #Vault for money stuff
-website: www.geolykt.de
+website: https://github.com/Geolykt/bake
 commands:
   bake:
     description: Shows the progress of the bake and how much you need to contribute
