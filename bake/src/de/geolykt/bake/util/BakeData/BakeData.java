@@ -59,6 +59,7 @@ public abstract class BakeData {
 	 * @param plugin The instance of the bake plugin.
 	 */
 	public BakeData(Bake plugin) {
+		notRewarded = new ArrayList<UUID>();
 		bakeInstance = plugin;
 	}
 	
@@ -166,7 +167,7 @@ public abstract class BakeData {
 	
 	/**
 	 * @since 1.6.0-pre4
-	 * @return The total amount of wheat that has been contributed, only resets when the server shuts down (will be changed in future updates).
+	 * @return The total amount of wheat that has been contributed, only resets when the server shuts down (will be changed in future updates). Note: it will no longer be reset
 	 */
 	public int getTotalContributed() {
 		return totalContrib;

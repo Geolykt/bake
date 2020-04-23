@@ -20,12 +20,12 @@ public class LocalBake extends BakeData {
 
 	public LocalBake(Bake plugin) {
 		super(plugin);
+		totalContrib = plugin.getConfig().getInt("bake.save.all", -1);
 	}
 
 	@Override
 	public void onContribution(int amount, Player player) {
-		// TODO Auto-generated method stub
-		
+		totalContrib+=amount;
 	}
 
 	@Override
