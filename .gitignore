@@ -11,3 +11,5 @@ bin/
 gradlew
 gradlew.*
 org.eclipse.jdt.annotation_2.2.400.v20191120-1313.jar
+/target/
+dependency-reduced-pom.xml
