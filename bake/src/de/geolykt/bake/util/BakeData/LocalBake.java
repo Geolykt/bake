@@ -26,6 +26,9 @@ public class LocalBake extends BakeData {
 	@Override
 	public void onContribution(int amount, Player player) {
 		totalContrib+=amount;
+		
+		amount += projectReminderList.getOrDefault(player.getUniqueId(), 0);
+		projectReminderList.put(player.getUniqueId(), amount);
 	}
 
 	@Override
@@ -54,7 +57,7 @@ public class LocalBake extends BakeData {
 					sender.sendMessage(ChatColor.AQUA + "Format: /bake admin [add <amount>]");
 				} else {
 					try {
-						bakeInstance.BakeProgress -= Integer.parseInt(args[2]);
+						BakeProgress -= Integer.parseInt(args[2]);
 						sender.sendMessage(ChatColor.DARK_GREEN + "Nudged " + args[2] + " towards the project.");
 					} catch(Exception e) {
 						sender.sendMessage(ChatColor.AQUA + "Format: /bake admin [add <amount>]");
@@ -62,7 +65,7 @@ public class LocalBake extends BakeData {
 					}
 					if (isFinished()) {
 						bakeInstance.forceFinish(sender.getName());
-						bakeInstance.BakeProgress = bakeInstance.getConfig().getInt("bake.wheat_Required", -1);
+						BakeProgress = bakeInstance.getConfig().getInt("bake.wheat_Required", -1);
 					}
 				}
 			} else {

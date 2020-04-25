@@ -78,6 +78,8 @@ public class GlobalBake extends BakeData {
 		} catch (IOException | URISyntaxException e) {
 			e.printStackTrace();
 		}
+		amount += projectReminderList.getOrDefault(player.getUniqueId(), 0);
+		projectReminderList.put(player.getUniqueId(), amount);
 		this.maintainanceThread.refresh(false, false);
 	}
 
@@ -188,10 +190,10 @@ public class GlobalBake extends BakeData {
 				short last = (short) dataInstance.getProjectsFinishedToday();
 				Instant last_instant = dataInstance.getLastCompletion();
 				dataInstance.bakeInstance.forceFinish("International Effort");
-				dataInstance.bakeInstance.Record = record_instant;
-				dataInstance.bakeInstance.BestAmount = record;
-				dataInstance.bakeInstance.Last = last_instant;
-				dataInstance.bakeInstance.Today = last;
+				dataInstance.Record = record_instant;
+				dataInstance.BestAmount = record;
+				dataInstance.Last = last_instant;
+				dataInstance.Today = last;
 				
 			} else if (dataInstance.isFinished()) {
 				dataInstance.bakeInstance.forceFinish("International Effort");

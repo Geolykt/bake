@@ -31,13 +31,14 @@ public abstract class BakeData {
 	protected int totalContrib = 0;
 	
 	/**
-	 * Stores who has contributed in the current project.<br>
-	 * PlayerUUID -> Has contributed?<br>
-	 * If true, then the player has contributed, if false then the player hasn't contributed.<br>
-	 * It is recommended to interpret null or missing values as a false.<br>
-	 * @since 1.6.0
+	 * <b> Changed in 1.7.0 to a HashMap<UUID, Integer>!</b>
+	 * Stores who has contributed how much in the current project.<br>
+	 * PlayerUUID -> Has contributed how much?<br>
+	 * If greater to 0, then the player has contributed, if 0 or below then the player hasn't contributed.<br>
+	 * It is recommended to interpret null or missing values as a 0 or below.<br>
+	 * @since 1.6.0.<b> Changed in 1.7.0 to a HashMap<UUID, Integer>!</b>
 	 */
-	public HashMap<UUID, Boolean> projectReminderList = new HashMap<UUID, Boolean>();
+	public HashMap<UUID, Integer> projectReminderList = new HashMap<UUID, Integer>();
 	
 	/**
 	 * Stores who has contributed on the current day.<br>
@@ -53,6 +54,128 @@ public abstract class BakeData {
 	 * @since 1.6.0-pre1
 	 */
 	public ArrayList<UUID> notRewarded = new ArrayList<UUID>();
+	
+	
+
+	/**
+	 * The Progress of the project <br>
+	 * Important notice: Returns what is LEFT until it is completeted!
+	 * @since 1.7.0
+	 */
+	protected int BakeProgress = 0;
+	
+	/**
+	 * Adds the contribution, which results in the BakeProgress value to DECREASE! <br>
+	 * Does not do further tests, like whether the Project is finished due to the operation
+	 * @param amount The amount to ADD
+	 */
+	public void addContribution(int amount) {
+		BakeProgress -= amount;
+	}
+	
+	/**
+	 * The Participants of the current project
+	 * @since 1.7.0
+	 */
+	protected byte Participants = 0;
+	
+	/**
+	 * <b>UNUSED</b> <br>
+	 * The number of participants today
+	 * @since 1.7.0
+	 * @deprecated Use is unknown
+	 */
+	protected byte ParticipantsToday = 0;
+	
+	/**
+	 * Sets the number of today's participants
+	 * @param p
+	 * @since 1.7.0
+	 */
+	public void setParticipantsToday (byte p) {
+		ParticipantsToday = p;
+	}
+	
+	/**
+	 * The projects finished today
+	 * @since 1.7.0
+	 */
+	protected short Today = 0;
+	
+	/**
+	 * Sets the number of the project's participants
+	 * @param p new value
+	 * @since 1.7.0
+	 */
+	public void setParticipantCount (byte p) {
+		Participants = p;
+	}
+	
+	/**
+	 * The projects finished up to date
+	 * @since 1.7.0
+	 */
+	protected short Times = 0;
+	
+	/**
+	 * @param bakeProgress the bakeProgress to set
+	 */
+	public void setBakeProgress(int bakeProgress) {
+		BakeProgress = bakeProgress;
+	}
+
+	/**
+	 * @param today the today to set
+	 */
+	public void setProjectsFinishedToday(short today) {
+		Today = today;
+	}
+
+	/**
+	 * @param times the times to set
+	 */
+	public void setTimes(short times) {
+		Times = times;
+	}
+
+	/**
+	 * @param bestAmount the bestAmount to set
+	 */
+	public void setBestAmount(short bestAmount) {
+		BestAmount = bestAmount;
+	}
+
+	/**
+	 * @param last the last to set
+	 */
+	public void setLastCompletion(Instant last) {
+		Last = last;
+	}
+
+	/**
+	 * @param record the record to set
+	 */
+	public void setRecord(Instant record) {
+		Record = record;
+	}
+
+	/**
+	 * The most projects finished in a day
+	 * @since 1.7.0
+	 */
+	protected short BestAmount = 0;
+	
+	/**
+	 * The last time a project was completed
+	 * @since 1.7.0
+	 */
+	protected Instant Last = Instant.EPOCH;
+	
+	/**
+	 * The day the most projects were finished
+	 * @since 1.7.0
+	 */
+	protected Instant Record = Instant.EPOCH;
 	
 	/**
 	 * @since 1.6.0
@@ -97,7 +220,7 @@ public abstract class BakeData {
 	 * @return The remaining progress left to complete the current project.
 	 */
 	public int getRemaining() {
-		return bakeInstance.BakeProgress;
+		return BakeProgress;
 	}
 	
 	/**
@@ -106,7 +229,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getRecordAmount() {
-		return bakeInstance.BestAmount;
+		return BestAmount;
 	}
 	
 	/**
@@ -115,7 +238,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public Instant getLastCompletion() {
-		return bakeInstance.Last;
+		return Last;
 	}
 	
 	/**
@@ -124,7 +247,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getParticipantAmount() {
-		return bakeInstance.Participants;
+		return Participants;
 	}
 	
 
@@ -134,7 +257,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public Instant getRecordDate() {
-		return bakeInstance.Record;
+		return Record;
 	}
 	
 
@@ -144,7 +267,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getProjectsFinishedToday() {
-		return bakeInstance.Today;
+		return Today;
 	}
 
 	/**
@@ -153,7 +276,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getOverallCompletionAmount() {
-		return bakeInstance.Times;
+		return Times;
 	}
 	
 	/**
@@ -162,7 +285,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getParticipantAmountToday() {
-		return bakeInstance.ParticipantsToday;
+		return ParticipantsToday;
 	}
 	
 	/**
@@ -199,7 +322,7 @@ public abstract class BakeData {
 	 * @since 1.6.0-pre4
 	 */
 	public void onFinish() {
-		bakeInstance.BakeProgress = bakeInstance.getConfig().getInt("bake.wheat_Required", -1);
+		BakeProgress = bakeInstance.getConfig().getInt("bake.wheat_Required", -1);
 	}
 
 	/**

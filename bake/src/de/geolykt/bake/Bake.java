@@ -107,71 +107,6 @@ import net.milkbowl.vault.economy.Economy;
  *
  */
 public class Bake extends JavaPlugin {
-
-	
-	/**
-	 * The Progress of the project <br>
-	 * Important notice: Returns what is LEFT until it is completeted!
-	 * @since ?, public since 1.6.0
-	 * @deprecated Removed in 1.7. Use BakeData instead.
-	 */
-	public int BakeProgress = 0;
-	
-	/**
-	 * The Participants of the current project
-	 * @since ?, public since 1.6.0
-	 * @deprecated Removed in 1.7. Use BakeData instead.
-	 */
-	public byte Participants = 0;
-	
-	/**
-	 * <b>UNUSED</b> <br>
-	 * The number of participants today
-	 * @since ?, public since 1.6.0
-	 * @deprecated Removed in 1.7. May get reintroducted since then, who knows? But you will find it in BakeData then.
-	 */
-	public byte ParticipantsToday = 0;
-	
-	/**
-	 * The projects finished today
-	 * @since ?, public since 1.6.0
-	 * @deprecated Removed in 1.7. Use BakeData instead.
-	 */
-	public short Today = 0;
-	
-	/**
-	 * The projects finished up to date
-	 * @since ?, public since 1.6.0
-	 * @deprecated Removed in 1.7. Use BakeData instead.
-	 */
-	public short Times = 0;
-	
-	/**
-	 * The most projects finished in a day
-	 * @since ?, public since 1.6.0
-	 * @deprecated Removed in 1.7. Use BakeData instead.
-	 */
-	public short BestAmount = 0;
-	
-	/**
-	 * The last time a project was completed
-	 * @since ?, public since 1.6.0
-	 * @deprecated Removed in 1.7. Use BakeData instead.
-	 */
-	public Instant Last = Instant.EPOCH;
-	
-	/**
-	 * The day the most projects were finished
-	 * @since ?, public since 1.6.0
-	 * @deprecated Removed in 1.7. Use BakeData instead.
-	 */
-	public Instant Record = Instant.EPOCH;
-	
-	
-	//---------------------------------------------------------
-	// 1.7.0 code
-	//---------------------------------------------------------
-	
 	/**
 	 * API LEVEL for the bukkit server, not the plugin itself, you need that one, use the Bake Auxillary instead!
 	 * @since 1.5.1
@@ -288,7 +223,7 @@ public class Bake extends JavaPlugin {
 			getConfig().options().copyDefaults(true);
 			saveConfig();
 		}
-		BakeProgress = (int) getConfig().get("bake.wheat_Required");
+		DataHandle.setBakeProgress(getConfig().getInt("bake.wheat_Required",99999999));
 
 		StringParser = new StringUtils(this);
 		if (getConfig().getBoolean("bake.gbake.enable", false)) {
@@ -314,16 +249,15 @@ public class Bake extends JavaPlugin {
 	 * 
 	 */
 	private void readValues() {
-		
-		Last = Instant.parse(getConfig().getString("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH)));
-		Times = (short) getConfig().getInt("bake.save.times", 0);
-		if (!Last.equals(Instant.EPOCH)) {
-			Today = (short) getConfig().getInt("bake.save.today", 0);
+		DataHandle.setLastCompletion(Instant.parse(getConfig().getString("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH))));
+		if (!DataHandle.getLastCompletion().equals(Instant.EPOCH)) {
+			DataHandle.setProjectsFinishedToday((short) getConfig().getInt("bake.save.today", 0));
 		}
-		BestAmount = (short) getConfig().getInt("bake.save.record", 0);
-		Participants = (byte) getConfig().getInt("bake.save.participants", 0);
-		ParticipantsToday = (byte) getConfig().getInt("bake.save.participantsToday", 0);
-		Record = Instant.parse(getConfig().getString("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH)));
+		DataHandle.setTimes((short) getConfig().getInt("bake.save.times", 0));
+		DataHandle.setBestAmount((short) getConfig().getInt("bake.save.record", 0));
+		DataHandle.setParticipantCount((byte) getConfig().getInt("bake.save.participants", 0));
+		DataHandle.setParticipantsToday((byte) getConfig().getInt("bake.save.participantsToday", 0));
+		DataHandle.setRecord(Instant.parse(getConfig().getString("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH))));
 	}
 
 	@Override
@@ -342,14 +276,14 @@ public class Bake extends JavaPlugin {
 	 */
 	private void saveValues() {
 		if (getConfig().getBoolean("bake.general.cnfgStore", true)) {
-			getConfig().set("bake.save.times", Times);
-			getConfig().set("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Last));
-			getConfig().set("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Record));
-			getConfig().set("bake.save.today", Today);
-			getConfig().set("bake.save.record", BestAmount);
+			getConfig().set("bake.save.times", DataHandle.getOverallCompletionAmount());
+			getConfig().set("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(DataHandle.getLastCompletion()));
+			getConfig().set("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(DataHandle.getRecordDate()));
+			getConfig().set("bake.save.today", DataHandle.getProjectsFinishedToday());
+			getConfig().set("bake.save.record", DataHandle.getRecordAmount());
 			getConfig().set("bake.save.all", DataHandle.getTotalContributed());
-			getConfig().addDefault("bake.save.participants", Participants);
-			getConfig().addDefault("bake.save.participantsToday", ParticipantsToday);
+			getConfig().set("bake.save.participants", DataHandle.getParticipantAmount());
+			getConfig().set("bake.save.participantsToday", DataHandle.getParticipantAmountToday());
 			saveConfig();
 		}
 		lbHandle.save();
@@ -420,7 +354,7 @@ public class Bake extends JavaPlugin {
 				if (args.length > 0) {
 					if (args[0].equals("max") || args[0].equals("all")) {
 						amount = Bake_Auxillary.removeEverythingInInventoryMatchesItem(player, Material.WHEAT);
-						BakeProgress -= amount;
+						DataHandle.addContribution(amount);
 						lbHandle.update(player.getUniqueId(), amount);
 					} else {
 						//Error logic (to remove any errors that could be avoided)
@@ -436,7 +370,7 @@ public class Bake extends JavaPlugin {
 						//Check whether the player has the amount of wheat in its inventory, if not, the player will be notified
 						if (Bake_Auxillary.hasEnoughItems(player,Material.WHEAT, amount)) {//Player has enough wheat in its inventory
 							Bake_Auxillary.removeItem(player, Material.WHEAT, amount);
-							BakeProgress -= amount;
+							DataHandle.addContribution(amount);
 							lbHandle.update(player.getUniqueId(), amount);
 						} else {//player doesn't have enough wheat in its inventory
 							player.sendMessage(ChatColor.RED + "You don't have the specified amount of "+ Material.WHEAT.toString() + " in your inventory");
@@ -451,10 +385,12 @@ public class Bake extends JavaPlugin {
 					if (!DataHandle.projectReminderList.containsKey(player.getUniqueId())) 
 					{
 						//Player has not yet participated
-						DataHandle.projectReminderList.put(player.getUniqueId(), true);
-						Participants++;
+						//Handeld by onContribution() after 1.7
+//						DataHandle.projectReminderList.put(players.getUniqueId(), false); (This is should be handeled via the BakeData.onContribute() method)
+
+						DataHandle.setParticipantCount((byte) (DataHandle.getParticipantAmount()+1));
 						if (!DataHandle.dayReminderList.containsKey(player.getUniqueId())) {
-							ParticipantsToday++;
+							DataHandle.setParticipantsToday((byte) (DataHandle.getParticipantAmountToday()+1));
 							DataHandle.dayReminderList.put(player.getUniqueId(), true);
 						}
 					}
@@ -508,13 +444,13 @@ public class Bake extends JavaPlugin {
 				moneyAmount = getConfig().getDouble("bake.award.money", 0.0);
 			}
 			for (UUID playerUUID : DataHandle.projectReminderList.keySet()) {
-				if (!Bukkit.getOfflinePlayer(playerUUID).isOnline() && DataHandle.projectReminderList.get(playerUUID)) {
+				if (!Bukkit.getOfflinePlayer(playerUUID).isOnline() && (DataHandle.projectReminderList.getOrDefault(playerUUID, -1) > 0)) {
 					DataHandle.notRewarded.add(playerUUID);
 					DataHandle.projectReminderList.remove(playerUUID);
 				}
 			}
 			for (Player players : getServer().getOnlinePlayers()) {
-				if (DataHandle.projectReminderList.getOrDefault(players.getUniqueId(), false)) {
+				if (DataHandle.projectReminderList.getOrDefault(players.getUniqueId(), -1) > 0) {
 
 					for (ItemStack stack : rewards) {
 						players.getInventory().addItem(stack);
@@ -528,7 +464,7 @@ public class Bake extends JavaPlugin {
 							getLogger().severe("[BAKE] Totally not a mistake on my part. You should dispute with your economy plugin!");
 						}
 					}
-					DataHandle.projectReminderList.put(players.getUniqueId(), false);
+//					DataHandle.projectReminderList.put(players.getUniqueId(), false); (This is should be handeled via the BakeData.onContribute() method)
 					DataHandle.projectReminderList.remove(players.getUniqueId());
 				}
 			}
@@ -573,17 +509,17 @@ public class Bake extends JavaPlugin {
 	 * @deprecated will be removed in 1.7. Use StringUtils instead
 	 */
 	public String replaceAdvanced(String s) {
-		s = s.replaceAll("%TIMES%", String.valueOf(Times));
-		s = s.replaceAll("%TODAY%", String.valueOf(Today));
+		s = s.replaceAll("%TIMES%", String.valueOf(DataHandle.getOverallCompletionAmount()));
+		s = s.replaceAll("%TODAY%", String.valueOf(DataHandle.getProjectsFinishedToday()));
 		DateTimeFormatter format = DateTimeFormatter.RFC_1123_DATE_TIME.withLocale(Locale.UK)
 													.withZone(ZoneId.systemDefault());
-		s = s.replaceAll("%LAST%", format.format(Last));
+		s = s.replaceAll("%LAST%", format.format(DataHandle.getLastCompletion()));
 		format = DateTimeFormatter.ISO_LOCAL_DATE.withLocale(Locale.UK)
 				                                 .withZone(ZoneId.systemDefault());
-		s = s.replaceAll("%RECORDDATE%", format.format(Record));
-		s = s.replaceAll("%RECORD%", String.valueOf(BestAmount));
-		s = s.replaceAll("%PARTICIPANTS%", String.valueOf(Participants));
-		s = s.replaceAll("%PARTICIPANTSTODAY%", String.valueOf(ParticipantsToday));
+		s = s.replaceAll("%RECORDDATE%", format.format(DataHandle.getRecordDate()));
+		s = s.replaceAll("%RECORD%", String.valueOf(DataHandle.getRecordAmount()));
+		s = s.replaceAll("%PARTICIPANTS%", String.valueOf(DataHandle.getParticipantAmount()));
+		s = s.replaceAll("%PARTICIPANTSTODAY%", String.valueOf(DataHandle.getParticipantAmountToday()));
 		return s;
 	}
 
@@ -716,24 +652,24 @@ public class Bake extends JavaPlugin {
 		if (getConfig().getBoolean("bake.general.deleteRemembered")) {//Clear the list of contributors
 			DataHandle.projectReminderList.clear();
 		}
-		Times++;
+		DataHandle.setTimes((short) (DataHandle.getProjectsFinishedToday() + 1));
 				
 		DateTimeFormatter format = DateTimeFormatter.ISO_LOCAL_DATE.withLocale(Locale.UK)
 						                                                   .withZone(ZoneId.systemDefault());
 			
 		//If the two ISO Local Dates are the same, then the amount of projects is increased, otherwise it will be reset to 1 (since the project got completed)
-		if (format.format(Last).equals(format.format(Instant.now()))) {
+		if (format.format(DataHandle.getLastCompletion()).equals(format.format(Instant.now()))) {
 		//same date
-			Today++;
+			DataHandle.setProjectsFinishedToday((short) DataHandle.getProjectsFinishedToday());
 		} else {
 			//different date. 
 			forceRecordSurpassCheck(playername);
-			Today = 1;
-			ParticipantsToday = 0;
+			DataHandle.setProjectsFinishedToday((short) 1);
+			DataHandle.setParticipantsToday((byte) 0x00);
 			DataHandle.dayReminderList.clear();
 		}
-		Participants = 0;
-		Last = Instant.now();
+		DataHandle.setParticipantCount((byte) 0x00);
+		DataHandle.setLastCompletion(Instant.now());
 		saveValues();	
 	}
 	
@@ -774,12 +710,12 @@ public class Bake extends JavaPlugin {
 	 */
 	public void forceRecordSurpassCheck(String playername) {
 		//If the record is lower than what was archived the day before, then the record gets overridden with the amount of stuff done the day before
-		if (Today > BestAmount) {
+		if (DataHandle.getProjectsFinishedToday() > DataHandle.getRecordAmount()) {
 			if (getConfig().getBoolean("bake.general.doRecordSurpassBroadcast", true)) {
 				Bukkit.broadcastMessage(StringParser.replaceFrequent(StringParser.BakeRecordString, playername));
 			}
-			this.Record = Last;
-			BestAmount = Today;
+			DataHandle.setRecord(DataHandle.getLastCompletion());
+			DataHandle.setBestAmount((short) DataHandle.getProjectsFinishedToday());
 		}
 	}
 	
