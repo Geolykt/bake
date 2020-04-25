@@ -239,6 +239,9 @@ public class Bake extends JavaPlugin {
 		StringParser.cacheStrings();
 
 		lbHandle.load();
+		
+		//Creates Quest
+		this.saveResource("quests.yml", false);
 	}
 	
 	/**
