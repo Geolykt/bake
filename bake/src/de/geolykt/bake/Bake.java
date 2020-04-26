@@ -490,18 +490,6 @@ public class Bake extends JavaPlugin {
 		}
 
 	}
-	
-	/**
-	 * Replaces advanced placeholders and caches the messages, simpler placeholders (those who change frequently) are not changed
-	 * Just calls StringUtils#cachestrings() for 1.6.x
-	 *
-	 * @since 1.5.0
-	 * @author Geolykt
-	 * @deprecated will be removed in 1.7. Use stringUtils instead.
-	 */
-	public void replaceAdvancedCached () {
-		StringParser.cacheStrings();
-	}
 
 	/**
 	 * Like replaceAdvancedCached, but can be used to parse pretty much everything and it gets returned
@@ -509,7 +497,7 @@ public class Bake extends JavaPlugin {
 	 * @return The parsed string
 	 * @since 1.5.0
 	 * @author Geolykt
-	 * @deprecated will be removed in 1.7. Use StringUtils instead
+	 * @deprecated will be removed in the future
 	 */
 	public String replaceAdvanced(String s) {
 		s = s.replaceAll("%TIMES%", String.valueOf(DataHandle.getOverallCompletionAmount()));
@@ -554,6 +542,7 @@ public class Bake extends JavaPlugin {
 	 * Rolls the Loot table (defined in the config) and returns the all the items that have been rolled.
 	 * @return All the rolled itemstacks
 	 * @since 1.6.0
+	 * @deprecated Will not be used in 1.7 and should not be used at that point forward.
 	 */
 	public ArrayList<ItemStack> rollLootTable() {
 		int amount_entries = getConfig().getInt("bake.general.slots", 0);
@@ -756,9 +745,11 @@ public class Bake extends JavaPlugin {
 			return () -> "1-199";
 		} else if (allTime < 2000){
 			return () -> "200-1999";
+		} else if (allTime <= 5000){
+			return () -> "2000-5000";
 		} else if (allTime <= 20000){
-			return () -> "2000-20000";
-		} else if (allTime <= 50000){
+			return () -> "5001-20000";
+		} else if (allTime <= 50000) {
 			return () -> "20001-50000";
 		} else  {
 			return () -> ">50000";

@@ -1,6 +1,6 @@
-quests:
-  names:
+questNames:
     -vanilla
+quests:
   vanilla:
     type: contribution
     material:

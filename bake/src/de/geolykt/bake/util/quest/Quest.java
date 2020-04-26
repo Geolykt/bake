@@ -110,4 +110,12 @@ public class Quest {
 		}
 		return 0.0f;
 	}
+	
+	/**
+	 * @return The default effort that is required without any effort put in
+	 */
+	public int getThreshold () {
+		return config.getInt("quests." + name + ".threshold", 2147483647);
+		
+	}
 }
