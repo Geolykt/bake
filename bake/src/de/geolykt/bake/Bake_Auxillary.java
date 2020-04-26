@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.Map.Entry;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import de.geolykt.bake.util.quest.LootTable;
 
 /**
  * Library Class for the bake plugin.
@@ -23,7 +27,7 @@ public class Bake_Auxillary {
 	 * The version of the plugin in the MAJOR.MINOR.PATCH.ANNOTATION format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.6.2";
+	public static final String PLUGIN_VERSION = "1.7.0";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
@@ -34,9 +38,10 @@ public class Bake_Auxillary {
 	 * 0x4=1.6.0 (unused?)
 	 * 0x5=1.6.1
 	 * 0x6=1.6.2
+	 * 0x7=1.7.0
 	 * @since 1.5.1
 	 */
-	public static final byte PLUGIN_VERSION_ID = 0x6;
+	public static final byte PLUGIN_VERSION_ID = 0x7;
 	
 	/**
 	 * Replaces basic placeholders (e.g.: "%PERCENT%") with a specified corresponding value. <br> Some placeholders like "%VERSION%" are replaced automatically. <br>
@@ -62,7 +67,7 @@ public class Bake_Auxillary {
 	
 	/**
 	 * returns the length of the longest String in an array.
-	 * @deprecated Not used and thus not tested in recent versions. Will be used for 1.6 (hopefully)
+	 * @deprecated Not used and thus not tested in recent versions. Will be used for <s>1.6</s> <i>1.8?</i> (hopefully)<br>
 	 * TODO Use this
 	 * 
 	 * @param s Array of strings to be looked for
@@ -202,4 +207,66 @@ public class Bake_Auxillary {
 
         return result;
     }
+    
+    /**
+     * Gives the player the given Items.
+     * @param p The player receiving the Item
+     * @param base The base ItemStack, the "amount" variable will be overridden and is thus irrelevant.
+     * @param amount the amount of times the player should be rewarded the item specified in the base.
+     * @since 1.7.0
+     * @author Geolykt
+     */
+    public static void givePlayerItem (Player p, ItemStack base, Integer amount) {
+    	double numStacks = amount/base.getMaxStackSize() - 1;
+    	base.setAmount(base.getMaxStackSize());
+    	for (int i = 0; i < numStacks; i++) {
+    		amount -= base.getMaxStackSize();
+    		p.getInventory().addItem(base);
+    	}
+    	base.setAmount(amount);
+    	p.getInventory().addItem(base);
+    }
+    
+
+	/**
+	 * Rewards the players from the given LootTable. <br>
+	 * Default item reward method for 1.7 onwards.
+	 * @param players A map containing all the players and their contribution.
+	 * @param table The LootTable that should be used.
+	 * @param threshold Required to calculate the player's rewards.
+	 * @return A map with the player's UUIDs mapped to their contribution which rewards delivery was failed
+	 * @since 1.7.0
+	 * @author Geolykt
+	 */
+	public Map<UUID,Integer> rewardPlayers(Map<UUID,Integer> players, LootTable table, int threshold) {
+		ItemStack is [] = new ItemStack [table.items.length];
+		//Create the ItemStack and apply itemStack metadata
+		for (int i = 0; i < table.items.length; i++) {
+			is [i] = new ItemStack(table.items[i]);
+			is [i].setItemMeta(table.itemMeta[i]);
+		}
+		//Loop through items
+		for (int i = 0; i < table.items.length; i++) {
+			//Chance based things
+			if (Math.random()<table.baseChances[i]) {
+				//cycle through players
+				for (UUID playerID : players.keySet()) {
+					//Get whether the player is online
+					if (Bukkit.getPlayer(playerID).isOnline()) {
+						//Get how much the player is eligible on getting & send the data to the Auxiliary
+						Bake_Auxillary.givePlayerItem(Bukkit.getPlayer(playerID), is[i], (int) Math.round(table.pool_amount[i]*(threshold/players.getOrDefault(playerID,0))));
+					}
+				}
+			}
+		}
+		//Remove online players from the list, offline players should remain.
+		for (UUID playerID : players.keySet()) {
+			//Get whether the player is online
+			if (Bukkit.getPlayer(playerID).isOnline()) {
+				//Remove the player from the map
+				players.remove(playerID);
+			}
+		}
+		return players;
+	}
 }

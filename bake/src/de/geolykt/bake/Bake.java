@@ -92,6 +92,7 @@ import net.milkbowl.vault.economy.Economy;
  * 1.6.2: Changed the way the plugin reacts to an incompatible config version<br>
  * 1.6.2: Added bStats<br>
  * 1.6.2: Converted to maven<br>
+ * 1.7.0: Now Pooling quests, which results in more active donors getting a greater reward. <br>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>

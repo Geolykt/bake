@@ -116,6 +116,14 @@ public class Quest {
 	 */
 	public int getThreshold () {
 		return config.getInt("quests." + name + ".threshold", 2147483647);
-		
+	}
+	
+	/**
+	 * Returns the lootable of the given quest
+	 * @param APILevel The highest Bukkit API Level to access.
+	 * @return The lootTalbe of this quest
+	 */
+	public LootTable getLoot(int APILevel) {
+		return new LootTable(config, "quests." + name + ".rewards", APILevel);
 	}
 }

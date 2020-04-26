@@ -21,7 +21,5 @@ public class BakeEventListener implements Listener {
         	instance.rewardPlayer(event.getPlayer());
         	event.getPlayer().sendMessage(msg);
         }
-        
     }
-	
 }
