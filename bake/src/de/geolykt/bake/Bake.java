@@ -37,10 +37,6 @@ import net.milkbowl.vault.economy.Economy;
  * The main operating class
  * Almost all functions are called in here 
  * <ul><li>
- * 1.4.1: Merged bake spigot 1.13/1.14 and spigot 1.12 versions (compatible with 1.12 AND 1.13/1.14)<br>
- * 1.4.1: Added config version<br>
- * 1.4.1: Changed the way the chat config system works, it has now an entire config line allocated for multiple ingame lines. <br>
- * 1.4.1: Added config parameter "bake.general.noMeddle", if set to true, the config file won't be altered by the plugin in any way. <br></li><li>
  * 1.5.0: Added placeholder: "%TIMES%", which replaces the amount of times the project has been completed, stored in the config. <br>
  * 1.5.0: Added placeholder: "%TODAY%", which replaces how many projects were completed today. <br>
  * 1.5.0: Added placeholder: "%RECORD%", which replaces how many projects were completed on the day where the most projects were completed. <br>
@@ -53,14 +49,17 @@ import net.milkbowl.vault.economy.Economy;
  * 1.5.0: The Public int "BakeProgress" in class "Bake" is now a private int, if your plugin used the value, please change that <br>
  * 1.5.0: A broadcast will usually be done (if not disabled via setting) when the Record gets broken. <br>
  * 1.5.0: Added command: "/bakestats", which is just a bit like /bake, but has the intended use with statistics surrounding the bake project form all the way since 1.5.0 (or a newer version) was implemented on the server. <br>
+ * </li><li>
  * 1.5.1: Added metrics <br>
  * 1.5.1: Added 1.8  - 1.11 support <br>
  * 1.5.1: Code cleanup <br>
+ * </li><li>
  * 1.5.2: Now automatically converts enchantment names from pre-1.13 to  post 1.12.2 and vice versa (as long as its required). <br>
  * 1.5.2: Added config parameter "bake.general.doEnchantConvert" which toggles whether to convert enchantment from 1.12 and earlier to 1.13 or later (and vice versa; will pick the correct one) <br>
  * 1.5.2: Added vault support via the "bake.award.money" config parameter <br>
  * 1.5.2: Added config parameter "bake.award.money" which adds vault money to participants. <br>
- * 1.5.2: The record value now uses the date of the day before the record was broken, not the date of the day when the record was broken. So it will now correctly show when the most projects were completed. <br></li><li>
+ * 1.5.2: The record value now uses the date of the day before the record was broken, not the date of the day when the record was broken. So it will now correctly show when the most projects were completed. <br>
+ * </li><li>
  * 1.6.0-pre1: Completely reworked on how the code is structured. <br>
  * 1.6.0-pre1: Reworked the slot system. <br>
  * 1.6.0-pre1: 1.6.0-pre1 is <b>NOT</b> config compatible with 1.5.2 or earlier! <br>
@@ -85,14 +84,19 @@ import net.milkbowl.vault.economy.Economy;
  * 1.6.0-pre4: Added an alias to the "/contribute max" command: "/contribute all"<br>
  * 1.6.0-pre4: Implemented a feature where players that have contributed but were offline when the project finished would be rewarded as soon as they rejoin. (Can be toggled via bake.general.rewardLater)<br>
  * 1.6.0-pre5: Improved debugging when Vault economies don't work as intended<br>
+ * </li><li>
  * 1.6.1: Added the Bake administrator control panel, used to cheat the system<br>
  * 1.6.1: Updated default strings<br>
  * 1.6.1: Fixed that the metrics wouldn't run at all<br>
  * 1.6.1: Now autocompletes on Tab <br>
+ * </li><li>
  * 1.6.2: Changed the way the plugin reacts to an incompatible config version<br>
  * 1.6.2: Added bStats<br>
  * 1.6.2: Converted to maven<br>
+ * </li><li>
  * 1.7.0: Now Pooling quests, which results in more active donors getting a greater reward. <br>
+ * 1.7.0: Now using quests instead of the projects, which allow for far further possibilities. <br>
+ * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
@@ -242,7 +246,7 @@ public class Bake extends JavaPlugin {
 
 		lbHandle.load();
 		
-		//Creates Quest
+		//Creates Quests.yml
 		this.saveResource("quests.yml", false);
 	}
 	
