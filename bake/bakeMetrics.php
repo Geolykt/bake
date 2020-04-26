@@ -8,14 +8,14 @@
  	<meta name="keywords" content="Geolykt, Minecraft, Bake, Metrics, why are you here">
  	<meta name="author" content="Geolykt">
 </head>
-<body><p>$1.5.2$1.5.2$<br> Most recent nightly version / Most recent public version <br> To see the version usage use <a href="versions.txt">this file</a></p> 
+<body><p>$1.7.0$1.6.2$<br> Most recent nightly version / Most recent public version <br> To see the version usage use <a href="versions.txt">this file</a></p> 
  <?php
  #handle versiuon submittion
  if (count($_GET) == 0) {
    # user checks metrics
  } else {
    # plugin sends metrics
-  if ($_GET["version"] > 1) { #validate the length
+  if ($_GET["version"] > 10) { #validate the length
     #user is messing around - ignore
   } else {
     echo $_GET["version"];
