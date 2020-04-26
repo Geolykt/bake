@@ -191,7 +191,6 @@ public class Bake extends JavaPlugin {
 			} else if (getConfig().getInt("bake.general.configVersion", -1) < 5) {
 				//Stricly incompatible version (due to the award system completly being reworked, would be too tedious to create an autopatcher.
 				getLogger().severe(ChatColor.DARK_RED + "The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually!");
-				new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + "Configuration Version outdated. Consider updating it manually for the time being.");}}.runTask(this);
 			}
 			
 			//1.5.2 Enchant conversion
@@ -206,6 +205,8 @@ public class Bake extends JavaPlugin {
 			}
 			
 			saveConfig();
+			
+			new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + "Did you know? Half of the servers deploying this plugin don't make use of it. Please delete this plugin if you are one of them. \n -Sincerely, Geolykt");}}.runTask(this);
 		}
 		
 		//Store values
