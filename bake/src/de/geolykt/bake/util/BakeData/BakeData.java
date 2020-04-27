@@ -344,7 +344,29 @@ public abstract class BakeData {
 		return "unknown";
 	}
 
+	/**
+	 * @since 1.6.2
+	 * @param sender The sender
+	 * @param command The command
+	 * @param alias The alias used
+	 * @param args Arguments passed
+	 * @return A list with all the possible completions.
+	 */
 	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
 		return new ArrayList<String>();
+	}
+
+
+	/**
+	 * The currently active quest
+	 * @since 1.7.0
+	 */
+	public Quest activeQuest = null;
+	
+	/**
+	 * Creates a new quest and resets the "activeQuest" variable
+	 * @since 1.7.0
+	 */
+	public void newQuest() {
 	}
 }

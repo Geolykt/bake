@@ -35,13 +35,13 @@ public class Quest {
 	
 	/**
 	 * Loads a quest from the specified file
-	 * @param file The file from which the quest should be loaded, should be a YAML file. And not null.
+	 * @param questCfg The file from which the quest should be loaded.
 	 * @param questNameID The unique identifier for the plugin
 	 * @throws NoSuchElementException, if the questType is invalid.
 	 * @since 1.7.0
 	 */
-	public Quest(File file, String questNameID) {
-		config = YamlConfiguration.loadConfiguration(file);
+	public Quest(YamlConfiguration questCfg, String questNameID) {
+		config = questCfg;
 		this.name = questNameID;
 		if (config.getString("quests." + name + ".type", "N/A").equalsIgnoreCase("contribution")) {
 			questType = QuestType.CONTRIBUTION;
