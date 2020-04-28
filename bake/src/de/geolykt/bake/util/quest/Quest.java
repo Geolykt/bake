@@ -1,6 +1,5 @@
 package de.geolykt.bake.util.quest;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 

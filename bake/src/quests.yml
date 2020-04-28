@@ -1,6 +1,7 @@
-questNames:
-    -vanilla
 quests:
+  names:
+#this list needs to have at least TWO entries, otherwise it borks itself!
+    - vanilla
   vanilla:
     type: contribution
     material:
@@ -10,11 +11,11 @@ quests:
     threshold: 1000
     rewards:
       items:
-        -DIAMOND
-        -CAKE
-        -NETHER_STAR
-        -GOLD_INGOT
-        -COAL
+        - DIAMOND
+        - CAKE
+        - NETHER_STAR
+        - GOLD_INGOT
+        - COAL
       DIAMOND:
         'baseChance': 1
         'pool': 16

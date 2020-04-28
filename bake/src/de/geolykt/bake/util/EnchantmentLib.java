@@ -141,6 +141,7 @@ public class EnchantmentLib {
 	 * @throws IllegalArgumentException When the input string is invalid
 	 * @return The enchantment based on the input string
 	 */
+	@SuppressWarnings("deprecation")
 	public static Enchantment getEnchantmentFromString (String enchantment, int API_LEVEL) throws IllegalArgumentException {
 		if (API_LEVEL > 12) {//1.13+
 			//Using EnchantmentWrapper instead of the Enchantment Class since 1.6.0-pre2. TODO:Does this have any changes?
