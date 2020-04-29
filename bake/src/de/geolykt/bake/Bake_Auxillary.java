@@ -12,7 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import de.geolykt.bake.util.quest.LootTable;
+import de.geolykt.bake.util.quest.BakeLootTable;
 
 /**
  * Library Class for the bake plugin.
@@ -229,16 +229,16 @@ public class Bake_Auxillary {
     
 
 	/**
-	 * Rewards the players from the given LootTable. <br>
+	 * Rewards the players from the given BakeLootTable. <br>
 	 * Default item reward method for 1.7 onwards.
 	 * @param players A map containing all the players and their contribution.
-	 * @param table The LootTable that should be used.
+	 * @param table The BakeLootTable that should be used.
 	 * @param threshold Required to calculate the player's rewards.
 	 * @return A map with the player's UUIDs mapped to their contribution which rewards delivery was failed
 	 * @since 1.7.0
 	 * @author Geolykt
 	 */
-	public Map<UUID,Integer> rewardPlayers(Map<UUID,Integer> players, LootTable table, int threshold) {
+	public static Map<UUID,Integer> rewardPlayers(Map<UUID,Integer> players, BakeLootTable table, int threshold) {
 		ItemStack is [] = new ItemStack [table.items.length];
 		//Create the ItemStack and apply itemStack metadata
 		for (int i = 0; i < table.items.length; i++) {
@@ -268,5 +268,30 @@ public class Bake_Auxillary {
 			}
 		}
 		return players;
+	}
+
+	/**
+	 * Rewards a player with the given table. Does not check whether the player is online though
+	 * @param player The target player
+	 * @param table The BakeLootTable
+	 * @param threshold The threshold of the reason. Used to calculate how much the player is eligible from getting
+	 * @param contrib How much the player has contributed. Used to calculate how much the player is eligible from getting
+	 * @since 1.7.0
+	 */
+	public static void rewardPlayer(Player player, BakeLootTable table, int threshold, int contrib) {
+		ItemStack is [] = new ItemStack [table.items.length];
+		//Create the ItemStack and apply itemStack metadata
+		for (int i = 0; i < table.items.length; i++) {
+			is [i] = new ItemStack(table.items[i]);
+			is [i].setItemMeta(table.itemMeta[i]);
+		}
+		//Loop through items
+		for (int i = 0; i < table.items.length; i++) {
+			//Chance based things
+			if (Math.random()<table.baseChances[i]) {
+				//Get how much the player is eligible on getting & send the data to the Auxiliary
+				Bake_Auxillary.givePlayerItem(player, is[i], (int) Math.round(table.pool_amount[i]*(threshold/contrib)));
+			}
+		}
 	}
 }

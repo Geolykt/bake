@@ -2,6 +2,7 @@ quests:
   names:
 #this list needs to have at least TWO entries, otherwise it borks itself!
     - vanilla
+    - lie
   vanilla:
     type: contribution
     material:
@@ -46,3 +47,18 @@ quests:
         'lore': §dThank you for participating!
         'display_name': ''
         'enchantment': ''
+  lie:
+    type: contribution
+    material:
+      -wheat=1.0
+      -bread=4.0
+    threshold: 1000
+    rewards:
+      items:
+        - CAKE
+      CAKE:
+        'baseChance': 1
+        'pool': 64
+        'lore': §4 is a lie
+        'display_name': §4The cake
+        'enchantment': UNBREAKING@0

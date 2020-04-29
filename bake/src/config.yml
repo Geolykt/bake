@@ -2,7 +2,7 @@
 bake:
   general:
     #version of the configuration, leave it be
-    configVersion: 5
+    configVersion: 6
     #amounts of 'slots' used, the more, the more items you can award, but there might be lag.
     slots: 5
     #should only contributors be awarded. (non-contributors will not recieve anything)
@@ -13,60 +13,15 @@ bake:
     noMeddle: false
     #leave it be, setting it to false will break almost everything
     cnfgStore: true
-    #Should enchants get automatically converted ("might" fix bugs connected to enchants, but can cause longer starting times or even cause them.)
-    doEnchantConvert: true
     #should a broadcast be done when the day's record is broken?
     doRecordSurpassBroadcast: true
     #should the leaderboard be used?
     useLeaderboard: true
     #should the player we rewarded when they rejoin after they contributed and the project was finished in their absence?
     rewardLater: true
-  #amount of required wheat
-  wheat_Required: 1000
   metrics:
     #set this to false if you don't want bake to contact https://geolykt.de/src/bake/bakeMetrics.php
     opt-out: false
-  award:
-    #amount of vault money that should be given to each participant on completion.
-    money: 1000
-    #maximum amount of things that can be rewarded, so if it is set to 1 only 1 itemstack will be given out, however it can also award less.
-    maximum: 10
-    #the slot talked before will come handy here, please mind that it starts with 0 and ends with n - 1
-    '0':
-      'type': DIAMOND
-      'chance': 0.5
-      'count': 3
-      'lore': §dThank you for participating!
-      'display_name': §9A DIAMOND
-      'enchantment': UNBREAKING@5
-    '1':
-      'type': CAKE
-      'chance': 1
-      'count': 1
-      'lore': §dThank you for participating!| Here! Have a cake!
-      'display_name': §cYUMMY!
-      'enchantment': UNBREAKING@5|MENDING@1
-    '2':
-      'type': NETHER_STAR
-      'chance': 0.05
-      'count': 1
-      'lore': §dThank you for participating!
-      'display_name': '§eSHINY!'
-      'enchantment': ''
-    '3':
-      'type': GOLD_INGOT
-      'chance': 0.1
-      'count': 16
-      'lore': §dThank you for participating!
-      'display_name': ''
-      'enchantment': ''
-    '4':
-      'type': COAL
-      'chance': 0.8
-      'count': 16
-      'lore': §dThank you for participating!
-      'display_name': ''
-      'enchantment': ''
   chat:
     recordSurpassBroadcast: '§6[BAKE] The previous record of %RECORD% on the %RECORDDATE%
       was broken by the new record of %TODAY%!'

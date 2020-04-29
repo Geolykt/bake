@@ -17,7 +17,7 @@ import de.geolykt.bake.util.EnchantmentLib;
  * @author Geolykt
  * @since 1.7.0
  */
-public class LootTable {
+public class BakeLootTable {
 
 	public Material items [];
 	public Integer pool_amount [];
@@ -25,17 +25,19 @@ public class LootTable {
 	public ItemMeta itemMeta [];
 	
 	/**
-	 * Loads the LootTable from the given path of the given config file
+	 * Loads the BakeLootTable from the given path of the given config file
 	 * @param config The configuration
 	 * @param path The path the loot table is located under.
 	 * @param APILevel The highest Bukkit API level the method is allowed to execute.
 	 */
 	@SuppressWarnings("deprecation")
-	public LootTable(YamlConfiguration config, String path, int APILevel) {
+	public BakeLootTable(YamlConfiguration config, String path, int APILevel) {
+		
 		int length = config.getStringList(path + ".items").size();
 		items = new Material [length];
 		pool_amount = new Integer[length];
 		itemMeta = new ItemMeta[length];
+		baseChances = new Float[length];
 		
 		List<String> itemList = config.getStringList(path + ".items"); 
 		

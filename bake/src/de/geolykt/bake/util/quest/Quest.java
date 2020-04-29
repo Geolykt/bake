@@ -122,7 +122,7 @@ public class Quest {
 	 * @param APILevel The highest Bukkit API Level to access.
 	 * @return The lootTalbe of this quest
 	 */
-	public LootTable getLoot(int APILevel) {
-		return new LootTable(config, "quests." + name + ".rewards", APILevel);
+	public BakeLootTable getLoot(int APILevel) {
+		return new BakeLootTable(config, "quests." + name + ".rewards", APILevel);
 	}
 }

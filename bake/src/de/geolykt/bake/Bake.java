@@ -1,10 +1,11 @@
 package de.geolykt.bake;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -16,15 +17,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.enchantments.Enchantment;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import de.geolykt.bake.util.EnchantmentLib;
 import de.geolykt.bake.util.Leaderboard;
 import de.geolykt.bake.util.MeticsClass;
 import de.geolykt.bake.util.StringUtils;
@@ -116,16 +115,16 @@ public class Bake extends JavaPlugin {
 	 * API LEVEL for the bukkit server, not the plugin itself, you need that one, use the Bake Auxillary instead!
 	 * @since 1.5.1
 	 */
-	private int API_LEVEL;
+	protected int API_LEVEL;
 	
 	/**
-	 * Utillity Class for parsing Bake Placeholders.
+	 * Utility Class for parsing Bake Placeholders.
 	 * @since 1.6.0
 	 */
 	public StringUtils StringParser = null;
 	
 	/**
-	 * Utillity Class for handling chat and data
+	 * Utility Class for handling chat and data
 	 */
 	public BakeData DataHandle = null;
 
@@ -148,6 +147,7 @@ public class Bake extends JavaPlugin {
 	public Leaderboard lbHandle = null;
 
 	public boolean useLeaderboard = false;
+	
 	
 	@Override
 	public void onEnable () {
@@ -185,33 +185,30 @@ public class Bake extends JavaPlugin {
 			//Using Vault would make no sense as no money would be sent.
 			useVault = false;
 		}
+		new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + " Over half of the servers using this plugin don't make use of it. Please delete this plugin if you are one of them. \n -Thanks, Geolykt");}}.runTask(this);
+
+		StringParser = new StringUtils(this);
+		if (getConfig().getBoolean("bake.gbake.enable", false)) {
+			DataHandle = new GlobalBake(this,getConfig().getString("bake.gbake.update_server", "localhost"), getConfig().getString("bake.gbake.update_client", "localhost"), getConfig().getLong("bake.gbake.interval", 1000l), getConfig().getString("bake.chat.gBakeRefresh", "N/A"));
+		} else {
+			DataHandle = new LocalBake(this);
+		}
+		if (!getConfig().getBoolean("bake.general.useLeaderboard", true)) {
+			useLeaderboard = false;
+		}
 		
 		if (!getConfig().getBoolean("bake.general.noMeddle", false)) {
 		
 			// Config Convert Process
-			if (getConfig().getInt("bake.general.configVersion", -1) > 5) {
+			if (getConfig().getInt("bake.general.configVersion", -1) > 6) {
 				//Notify User
 				getLogger().log(Level.WARNING, ChatColor.YELLOW + "The config version is newer than it should be! The plugin will try to run normal, but it might break  the config file!");
 				//the code can't do anything here, pray that it will work anyway.
 			} else if (getConfig().getInt("bake.general.configVersion", -1) < 5) {
-				//Stricly incompatible version (due to the award system completly being reworked, would be too tedious to create an autopatcher.
+				//Strictly incompatible version (due to the award system completely being reworked, would be too tedious to create an autopatcher.
 				getLogger().severe(ChatColor.DARK_RED + "The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually!");
 			}
-			
-			//1.5.2 Enchant conversion
-			if (getConfig().getBoolean("bake.general.doEnchantConvert", true)) {
-				for (int i = 0; i < getConfig().getInt("bake.general.slots", 0); i++) {
-					if (API_LEVEL >= 13) { //13 or later
-						getConfig().set("bake.award." + i + ".enchantment", EnchantmentLib.Convert12to13(getConfig().getString("bake.award." + i + ".enchantment", "")));
-					} else {//12 or earlier
-						getConfig().set("bake.award." + i + ".enchantment", EnchantmentLib.Convert13to12(getConfig().getString("bake.award." + i + ".enchantment", "")));
-					}
-				}
-			}
-			
 			saveConfig();
-			
-			new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + "Did you know? Half of the servers deploying this plugin don't make use of it. Please delete this plugin if you are one of them. \n -Sincerely, Geolykt");}}.runTask(this);
 		}
 		
 		//Store values
@@ -229,25 +226,26 @@ public class Bake extends JavaPlugin {
 			getConfig().options().copyDefaults(true);
 			saveConfig();
 		}
-		DataHandle.setBakeProgress(getConfig().getInt("bake.wheat_Required",99999999));
-
-		StringParser = new StringUtils(this);
-		if (getConfig().getBoolean("bake.gbake.enable", false)) {
-			DataHandle = new GlobalBake(this,getConfig().getString("bake.gbake.update_server", "localhost"), getConfig().getString("bake.gbake.update_client", "localhost"), getConfig().getLong("bake.gbake.interval", 1000l), getConfig().getString("bake.chat.gBakeRefresh", "N/A"));
-		} else {
-			DataHandle = new LocalBake(this);
-		}
-		if (!getConfig().getBoolean("bake.general.useLeaderboard", true)) {
-			useLeaderboard = false;
-		}
-		
 		
 		StringParser.cacheStrings();
 
 		lbHandle.load();
 		
 		//Creates Quests.yml
-		this.saveResource("quests.yml", false);
+		File questFile = new File(getDataFolder(), "quests.yml");
+		if (!questFile.exists()) {
+			//quests.yml does not exist
+			//-> create quests.yml
+			saveResource("quests.yml", false);
+		}
+		
+		DataHandle.QuestCfg =  new YamlConfiguration();
+		try {
+			DataHandle.QuestCfg.load(questFile);
+		} catch (IOException | InvalidConfigurationException e) {
+			e.printStackTrace();
+		}
+		DataHandle.newQuest();
 	}
 	
 	/**
@@ -394,8 +392,8 @@ public class Bake extends JavaPlugin {
 					if (!DataHandle.projectReminderList.containsKey(player.getUniqueId())) 
 					{
 						//Player has not yet participated
-						//Handeld by onContribution() after 1.7
-//						DataHandle.projectReminderList.put(players.getUniqueId(), false); (This is should be handeled via the BakeData.onContribute() method)
+						//Handled by onContribution() after 1.7
+//						DataHandle.projectReminderList.put(players.getUniqueId(), false); (This is should be handled via the BakeData.onContribute() method)
 
 						DataHandle.setParticipantCount((byte) (DataHandle.getParticipantAmount()+1));
 						if (!DataHandle.dayReminderList.containsKey(player.getUniqueId())) {
@@ -428,73 +426,6 @@ public class Bake extends JavaPlugin {
 			return true;
 		}
 		return false;
-	}
-	
-	/**
-	 * Rewards ONLINE players that have been marked in the DataHandle.projectReminderList HashMap via the default set reward mechanisms & removes players that have been rewarded from that list afterwards. <br>
-	 * Does not reward OFFLINE players that have been marked in the DataHandle.projectReminderList HashMap, but removes it from the Map and inserts them in the DataHandle.notRewarded HashMap.
-	 * Note: the automatic removal feature is prone to not work
-	 * @since 1.6.0-pre4
-	 */
-	public void doItemRewardProcess () {
-		//Item reward process
-		ArrayList<ItemStack> rewards = rollLootTable();
-		
-		//Trim the Array to not overshoot the maximum
-		if (rewards.size()>getConfig().getInt("bake.award.maximum", 0)) {
-			for (int i = rewards.size(); i > getConfig().getInt("bake.award.maximum", 0); i--) {
-				rewards.remove(i);
-			}
-		}
-		
-		if (getConfig().getBoolean("bake.general.remember")) {
-			double moneyAmount = 0.0;
-			if (useVault) {
-				moneyAmount = getConfig().getDouble("bake.award.money", 0.0);
-			}
-			for (UUID playerUUID : DataHandle.projectReminderList.keySet()) {
-				if (!Bukkit.getOfflinePlayer(playerUUID).isOnline() && (DataHandle.projectReminderList.getOrDefault(playerUUID, -1) > 0)) {
-					DataHandle.notRewarded.add(playerUUID);
-					DataHandle.projectReminderList.remove(playerUUID);
-				}
-			}
-			for (Player players : getServer().getOnlinePlayers()) {
-				if (DataHandle.projectReminderList.getOrDefault(players.getUniqueId(), -1) > 0) {
-
-					for (ItemStack stack : rewards) {
-						players.getInventory().addItem(stack);
-					}
-					if (useVault) {
-						try {
-							Eco.depositPlayer(players, moneyAmount);
-						} catch (Exception e) {
-							useVault = false;
-							e.printStackTrace();
-							getLogger().severe("[BAKE] Totally not a mistake on my part. You should dispute with your economy plugin!");
-						}
-					}
-//					DataHandle.projectReminderList.put(players.getUniqueId(), false); (This is should be handeled via the BakeData.onContribute() method)
-					DataHandle.projectReminderList.remove(players.getUniqueId());
-				}
-			}
-		} else {
-			for (ItemStack stack : rewards) {
-				//send item to the players
-				for (Player players : getServer().getOnlinePlayers()) {
-					if (players.getInventory().firstEmpty() == -1) {
-						continue;
-					}
-					players.getInventory().addItem(stack);
-				}
-			}
-			if (useVault) {
-				double moneyAmount = getConfig().getDouble("bake.award.money", 0.0);
-				for (Player players: getServer().getOnlinePlayers()) {
-					Eco.depositPlayer(players, moneyAmount);
-				}
-			}
-		}
-
 	}
 
 	/**
@@ -545,92 +476,8 @@ public class Bake extends JavaPlugin {
     }
 	
 	/**
-	 * Rolls the Loot table (defined in the config) and returns the all the items that have been rolled.
-	 * @return All the rolled itemstacks
-	 * @since 1.6.0
-	 * @deprecated Will not be used in 1.7 and should not be used at that point forward.
-	 */
-	public ArrayList<ItemStack> rollLootTable() {
-		int amount_entries = getConfig().getInt("bake.general.slots", 0);
-		ArrayList<ItemStack> ItemStacks = new ArrayList<ItemStack>();
-		for (int i = 0; i < amount_entries; i++) {
-			if (Math.random() <= getConfig().getDouble("bake.award."+i+".chance", 0.0)) {
-				ItemStack items = new ItemStack(Material.getMaterial(getConfig().getString("bake.award."+i+".type", "AIR")));
-				items.setAmount(getConfig().getInt("bake.award."+i+".count"));
-				ItemMeta itemM = items.getItemMeta();
-				
-				//LORE
-				ArrayList<String> l = new ArrayList<String>();
-				for (String string : getConfig().getString("bake.award."+i+".lore", "").split("\\|")) {
-					l.add(string);
-				}
-				if (l != null) {
-					itemM.setLore(l);
-				}
-				l.clear();
-				
-				String itemName = getConfig().getString("bake.award."+i+".display_name", "");
-				if (!itemName.equals("")) {
-					itemM.setDisplayName(itemName);
-				}
-				items.setItemMeta(itemM);
-
-				
-				//Enchantment
-				HashMap<Enchantment,Integer> enchantments = new HashMap<Enchantment, Integer>(); 
-				
-				for (String string : getConfig().getString("bake.award."+i+".enchantment", "").split("\\|")) {
-					if (string.equals("NIL") || string.equals("")) {
-						break;
-					}
-					if (string.split("@").length < 2) {//Not following the "Enchantment@Level" convention
-						break;
-					}
-					
-					try {
-						if (API_LEVEL > 11) {
-							enchantments.put(EnchantmentLib.getEnchantmentFromString(string.split("@")[0], API_LEVEL), Integer.valueOf(string.split("@")[1]));
-						} else {
-							itemM.addEnchant(Enchantment.getByName(string.split("@")[0]), Integer.valueOf(string.split("@")[1]), true);
-						}
-					} catch (NumberFormatException e) {
-						getLogger().severe("Error while enchanting item: Number format issue, skipping line. Please make sure everything is using the 'enchantment@level' format.");
-						break;
-					} catch (java.lang.IllegalArgumentException e) {
-						getLogger().severe("Error while enchanting item: IllegalArgumentException: (" + e.getLocalizedMessage() + ") it is recommended to use 1.12 enchant strings, not the 1.13 ones (default values)! If the error persists, create an issue on github or dev.bukkit.org");
-						getServer().broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "[BAKE] ERROR PREVENTED: An issue occoured during the process, see the logfiles for more information (" + e.getLocalizedMessage() + ")");
-						break;
-					} 
-					
-				}
-
-				if (API_LEVEL >= 12) {//API 12 or higher
-
-					//1.12 and above -> enchantment as usual
-					try {
-						items.addUnsafeEnchantments(enchantments);
-					} catch (IllegalArgumentException e) {
-						if (API_LEVEL <= 12) {
-							this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the entries legal for 1.12, because default values will always be faulty for 1.12; check the plugin's page (https://dev.bukkit.org/projects/bake) for more information on to solve this issue)");
-						} else {
-							this.getLogger().severe("Something went wrong while enchanting an item. Contact the plugin's developer or check your configurations (are the enchantments really existing? Perhaps they are misspelt.)");
-						}
-					}
-					enchantments.clear();
-				//1.11 and below -> enchantment via metadata
-				} else { //API 11 or lower
-					items.setItemMeta(itemM);
-				}
-				
-				ItemStacks.add(items);
-			}
-		}
-		return ItemStacks;
-	}
-	
-	/**
 	 * Force-finishes the project ignoring its requirements. Rewards are handed out as usual.<br>
-	 * DOES NOT RESET Requirements.
+	 * Does not reset Requirements by itself, will however do it through methods it will call (per default).
 	 * @since 1.6.0-pre4
 	 * @param playername Used to replace the %PLAYER% placeholder
 	 */
@@ -643,15 +490,13 @@ public class Bake extends JavaPlugin {
 		String s = StringParser.BakeFinishString;
 		s = StringParser.replaceFrequent(s, playername);
 		getServer().broadcastMessage(s);
-			
-		doItemRewardProcess();
 				
 		//Bake project finished 
 		if (getConfig().getBoolean("bake.general.deleteRemembered")) {//Clear the list of contributors
 			DataHandle.projectReminderList.clear();
 		}
 		DataHandle.setTimes((short) (DataHandle.getProjectsFinishedToday() + 1));
-				
+		
 		DateTimeFormatter format = DateTimeFormatter.ISO_LOCAL_DATE.withLocale(Locale.UK)
 						                                                   .withZone(ZoneId.systemDefault());
 			
@@ -677,19 +522,6 @@ public class Bake extends JavaPlugin {
 	 * @param player The player to receive the rewards
 	 */
 	public void rewardPlayer(Player player) {
-
-		//Item reward process
-		ArrayList<ItemStack> rewards = rollLootTable();
-		
-		//Trim the Array to not overshoot the maximum
-		if (rewards.size()>getConfig().getInt("bake.award.maximum", 0)) {
-			for (int i = rewards.size(); i > getConfig().getInt("bake.award.maximum", 0); i--) {
-				rewards.remove(i);
-			}
-		}
-		for (ItemStack stack : rewards) {
-			player.getInventory().addItem(stack);
-		}
 		if (useVault) {
 			try {
 				Eco.depositPlayer(player, getConfig().getDouble("bake.award.money", 0.0));

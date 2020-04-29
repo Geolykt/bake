@@ -3,12 +3,14 @@ package de.geolykt.bake.util.BakeData;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import de.geolykt.bake.Bake;
+import de.geolykt.bake.Bake_Auxillary;
 
 /**
  * 
@@ -29,6 +31,8 @@ public class LocalBake extends BakeData {
 		
 		amount += projectReminderList.getOrDefault(player.getUniqueId(), 0);
 		projectReminderList.put(player.getUniqueId(), amount);
+		
+		activeQuest.addEffort(amount);
 	}
 
 	@Override
@@ -57,15 +61,14 @@ public class LocalBake extends BakeData {
 					sender.sendMessage(ChatColor.AQUA + "Format: /bake admin [add <amount>]");
 				} else {
 					try {
-						BakeProgress -= Integer.parseInt(args[2]);
+						activeQuest.addEffort(Integer.parseInt(args[2]));;
 						sender.sendMessage(ChatColor.DARK_GREEN + "Nudged " + args[2] + " towards the project.");
 					} catch(Exception e) {
 						sender.sendMessage(ChatColor.AQUA + "Format: /bake admin [add <amount>]");
 						return;
 					}
 					if (isFinished()) {
-						bakeInstance.forceFinish(sender.getName());
-						BakeProgress = bakeInstance.getConfig().getInt("bake.wheat_Required", -1);
+						bakeInstance.forceFinish("nudge");;
 					}
 				}
 			} else {
@@ -97,5 +100,16 @@ public class LocalBake extends BakeData {
 		list.add("admin ?");
 		list.add("admin add");
 		return list;
+	}
+	
+	@Override
+	public void onFinish() {
+		this.notRewarded.putAll(Bake_Auxillary.rewardPlayers(this.projectReminderList, activeQuest.getLoot(Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])), activeQuest.getThreshold()));
+		newQuest();
+	}
+	
+	@Override
+	public int getRemaining() {
+		return activeQuest.getRequirement_left();
 	}
 }
