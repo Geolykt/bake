@@ -50,7 +50,7 @@ public class BakeLootTable {
 
 			//LORE
 			ArrayList<String> lore = new ArrayList<String>();
-			for (String string : config.getString(path + itemList.get(i) + ".lore", "").split("\\|")) {
+			for (String string : config.getString(path + "." + itemList.get(i) + ".lore", "").split("\\|")) {
 				lore.add(string);
 			}
 			if (lore != null) {
@@ -59,14 +59,14 @@ public class BakeLootTable {
 			lore.clear();
 			
 			//Display name
-			String itemName = config.getString(path + itemList.get(i) + ".display_name", "");
+			String itemName = config.getString(path + "." + itemList.get(i) + ".display_name", "");
 			if (!itemName.equals("")) {
 				meta.setDisplayName(itemName);
 			}
 
 			
 			//Enchantment
-			for (String string : config.getString(path + itemList.get(i) + ".enchantment", "").split("\\|")) {
+			for (String string : config.getString(path + "." + itemList.get(i) + ".enchantment", "").split("\\|")) {
 				if (string.equals("NIL") || string.equals("")) {
 					break;
 				}
