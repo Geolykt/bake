@@ -30,7 +30,7 @@ bake:
     bakestats: "§b========================================\n The bake project was\
       \ completed %TIMES% times in total, the last time on %LAST%.§b \n The most projects\
       \ were completed on %RECORDDATE% with %RECORD% times. \n§bA total of §c%PARTICIPANTS%§\
-      b participated in the recent project.\n§b========================================"
+      b participated in the recent project and %ALLTIME_CONTRIB% has been contributed since time unknown.\n§b========================================"
     contr2: '%INTPROG% was added to the project! Thanks!'
     global:
       contr2: '§6[BAKE]§r%PLAYER%§r§6 has contributed %INTPROG% to the bake projects! We are now

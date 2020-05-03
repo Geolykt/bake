@@ -170,6 +170,7 @@ public class StringUtils {
 		s = s.replaceAll("%INTMAX%", "" + String.valueOf(required));
 		s = s.replaceAll("%PERCENT%", String.format("%2.02f",(double) (-(bakeInstance.DataHandle.getRemaining() - required) / (required + 0.0)*100)));
 		s = s.replaceAll("%PLAYER%", player);
+		s = s.replaceAll("%ALLTIME_CONTRIB%", String.valueOf(bakeInstance.DataHandle.getTotalContributed()));
 		return s;
 	}
 }
