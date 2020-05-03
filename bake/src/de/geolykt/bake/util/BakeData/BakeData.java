@@ -378,11 +378,8 @@ public abstract class BakeData {
 	 */
 	public void newQuest() {
 		List <String> quests = QuestCfg.getStringList("quests.names");
-		bakeInstance.getLogger().info(QuestCfg.get("quests.names", "NO").toString());
+		bakeInstance.getLogger().info("[BAKE] Choosing new quest. Quests availiable: " + QuestCfg.get("quests.names", "NO").toString());
 		int questID = (int) Math.round(Math.random()*(quests.size()-1));
-		bakeInstance.getLogger().info(quests.toString());
-		bakeInstance.getLogger().info(quests.size() + "");
-		bakeInstance.getLogger().info(questID + "");
 		activeQuest = new Quest(QuestCfg, quests.get(questID));
 	}
 }

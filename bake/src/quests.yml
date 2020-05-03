@@ -6,9 +6,8 @@ quests:
   vanilla:
     type: contribution
     material:
-#         NOTE: The value should be a ROUND number! The decimal point is just for upwards compatibility!
-      -wheat=1.0
-      -bread=4.0
+      - wheat=1.0
+      - bread=4.0
     threshold: 1000
     rewards:
       items:
@@ -50,8 +49,8 @@ quests:
   lie:
     type: contribution
     material:
-      -wheat=1.0
-      -bread=4.0
+      - wheat=1.0
+      - bread=4.0
     threshold: 1000
     rewards:
       items:

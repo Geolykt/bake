@@ -297,6 +297,7 @@ public class Bake extends JavaPlugin {
 		lbHandle.save();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("bakestats")) 
@@ -351,7 +352,6 @@ public class Bake extends JavaPlugin {
 			
 		} else if (cmd.getName().equalsIgnoreCase("contribute")) 
 		{
-			
 			if (!(sender instanceof Player)) {//Check if the user is really a player; would cause havoc, if not
 				sender.sendMessage("This command can only be run by a player.");  //Shown if not a player
 				return true;
@@ -361,7 +361,7 @@ public class Bake extends JavaPlugin {
 				Player player = (Player) sender; 
 				if (args.length > 0) {
 					if (args[0].equals("max") || args[0].equals("all")) {
-						amount = Bake_Auxillary.removeEverythingInInventoryMatchesItem(player, Material.WHEAT);
+						amount = Bake_Auxillary.removeEverythingInInventoryMatchesItems(player, DataHandle.activeQuest.matches);
 						if (amount == 0) {
 							player.sendMessage(ChatColor.DARK_RED + "You do not have any items that you can contribute right now.");
 							return true;
@@ -375,13 +375,33 @@ public class Bake extends JavaPlugin {
 						} catch (NumberFormatException nfe) { // in case that that's not a real number
 							return false;
 						}
+						
 						// if 'amount' is under 1
 						if (amount < 1) {
 							return false; //Amount is lower than 1; this would lead to an error if it is not caught
 						}
-						//Check whether the player has the amount of wheat in its inventory, if not, the player will be notified
-						if (Bake_Auxillary.hasEnoughItems(player,Material.WHEAT, amount)) {//Player has enough wheat in its inventory
-							Bake_Auxillary.removeItem(player, Material.WHEAT, amount);
+						
+						//Check which item the player is holding in its hand
+						Material material_in_hand;
+						if (API_LEVEL < 9) {
+							//pre dual wield
+							material_in_hand = player.getInventory().getItemInHand().getType();
+						} else {
+							//dual wield -> use main hand
+							material_in_hand = player.getInventory().getItemInMainHand().getType();
+						}
+						
+						//Check whether the item can be contributed
+						Double multiplicator = DataHandle.activeQuest.matches.getOrDefault(material_in_hand, 0.0);
+						if (multiplicator == 0.0) {
+							player.sendMessage(ChatColor.DARK_RED + "You may not contribute that item to the current quest.");
+							return true;
+						}
+						
+						//Check whether the player has the amount of the Material in its inventory, if not, the player will be notified
+						if (Bake_Auxillary.hasEnoughItems(player,material_in_hand, amount)) {//Player has enough of the material in its inventory
+							Bake_Auxillary.removeItem(player, material_in_hand, amount);//Remove the material
+							amount *= multiplicator;
 							DataHandle.addContribution(amount);
 							lbHandle.update(player.getUniqueId(), amount);
 						} else {//player doesn't have enough wheat in its inventory
@@ -389,6 +409,8 @@ public class Bake extends JavaPlugin {
 							return true;
 						}
 					}
+				} else {
+					return false;
 				}
 				
 				// REMINDING CODEth

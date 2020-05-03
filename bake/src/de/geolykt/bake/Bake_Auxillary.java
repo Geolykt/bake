@@ -44,28 +44,6 @@ public class Bake_Auxillary {
 	public static final byte PLUGIN_VERSION_ID = 0x7;
 	
 	/**
-	 * Replaces basic placeholders (e.g.: "%PERCENT%") with a specified corresponding value. <br> Some placeholders like "%VERSION%" are replaced automatically. <br>
-	 * 
-	 * 
-	 * @param s The inserted string
-	 * @param progress What to replace "%INTPROG%" with
-	 * @param req  What to replace "%INTMAX%" with
-	 * @param prog What to replace "%PERCENT%" with
-	 * @param player What to replace "%PLAYER%" with
-	 * @return A String in which all placeholders have been replaced.
-	 * @since 1.4.1
-	 * @deprecated  Will be removed in 1.7. Use stringUtils instead.
-	 */
-	public static String ReplacePlaceHolders (String s, Object progress, int req, double prog, String player) {
-		s = s.replaceAll("%INTPROG%", progress.toString());
-		s = s.replaceAll("%INTMAX%", "" + req);
-		s = s.replaceAll("%PERCENT%", String.format("%2.02f",prog));
-		s = s.replaceAll("%VERSION%", PLUGIN_VERSION);
-		s = s.replaceAll("%PLAYER%", player);
-		return s;
-	}
-	
-	/**
 	 * returns the length of the longest String in an array.
 	 * @deprecated Not used and thus not tested in recent versions. Will be used for <s>1.6</s> <i>1.8?</i> (hopefully)<br>
 	 * TODO Use this
@@ -294,4 +272,21 @@ public class Bake_Auxillary {
 			}
 		}
 	}
+
+	/**
+	 * Removes every itemStack in a player's inventory that matches the Materials items and returns the amount that was removed multiplied with their provided value. The value is then rounded to an integer.
+	 * @param player The player whose inventory should be checked
+	 * @param matches The Materials to match against paired with their values
+	 * @return The amount of items that were removed.
+	 * @since 1.7.0
+	 */
+	public static int removeEverythingInInventoryMatchesItems(Player player, Map<Material, Double> matches) {
+		int amount = 0;
+		for (Entry<Material, Double> entry :matches.entrySet()) {
+			amount = (int) Math.round(entry.getValue() * removeEverythingInInventoryMatchesItem(player, entry.getKey()));
+		}
+		return amount;
+	}
+	
+	
 }

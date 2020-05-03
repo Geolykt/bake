@@ -1,6 +1,8 @@
 package de.geolykt.bake.util.quest;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.bukkit.Bukkit;
@@ -30,6 +32,8 @@ public class Quest {
 	
 	private int requirement_left;
 	
+	public Map<Material, Double> matches;
+	
 	private YamlConfiguration config;
 	
 	/**
@@ -49,6 +53,16 @@ public class Quest {
 			throw new NoSuchElementException("The current build of bake does not support the specified quest type!");
 		}
 		setRequirement_left(config.getInt("quests." + name + ".threshold", 2147483647));
+		
+		//Set the Matches
+		matches = new HashMap<Material, Double>();
+		for (String s : config.getStringList("quests." + name + ".material")) {
+			matches.put(Material.getMaterial(s.toUpperCase(Locale.ROOT).split("=")[0]), Double.valueOf(s.split("=")[1]));
+			Bukkit.getLogger().info("-----------");
+			Bukkit.getLogger().info(s.toUpperCase(Locale.ROOT));
+			Bukkit.getLogger().info(Material.getMaterial(s.toUpperCase(Locale.ROOT).split("=")[0]).toString());
+			Bukkit.getLogger().info(Double.valueOf(s.split("=")[1]).toString());
+		}
 	}
 
 	public String getName() {
@@ -82,32 +96,6 @@ public class Quest {
 	 */
 	public void addEffort (int change) {
 		this.requirement_left -= change;
-	}
-	
-	/**
-	 * Returns an ArrayList of Materials that are accepted by this Quest. Donating/destroying (depending on the questType) these Materials should count towards the effort.
-	 * @return An ArrayList of Materials
-	 */
-	public ArrayList<Material> getAcceptedMaterialsList () {
-		ArrayList<Material> listOfAcceptedMaterials = new ArrayList<Material>();
-		for (String s : config.getStringList("quest." + name + ".material")) {
-			listOfAcceptedMaterials.add(Material.getMaterial(s.split("=")[0]));
-		}
-		return listOfAcceptedMaterials;
-	}
-	
-	/**
-	 * Returns the worth of a material as a float.
-	 * @return The worth of the material as a float.
-	 */
-	public float getMaterialWorth(Material m) {
-		String materialName = m.toString();
-		for (String s : config.getStringList("quest." + name + ".material")) {
-			if (s.split("=")[0].equalsIgnoreCase(materialName)) {
-				return Float.parseFloat(s.split("=")[1]);
-			}
-		}
-		return 0.0f;
 	}
 	
 	/**
