@@ -214,7 +214,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getProgress() {
-		return bakeInstance.getConfig().getInt("bake.wheat_Required", -1) - getRemaining();
+		return activeQuest.getThreshold() - getRemaining();
 	}
 
 	/**
