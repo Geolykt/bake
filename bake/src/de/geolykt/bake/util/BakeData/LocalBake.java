@@ -31,8 +31,6 @@ public class LocalBake extends BakeData {
 		
 		amount += projectReminderList.getOrDefault(player.getUniqueId(), 0);
 		projectReminderList.put(player.getUniqueId(), amount);
-		
-		activeQuest.addEffort(amount);
 	}
 
 	@Override

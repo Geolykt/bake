@@ -190,7 +190,9 @@ public abstract class BakeData {
 	}
 	
 	/**
-	 * Called when a specific amount (amount) of an item is donated, checks wether the player is elegible have already been done and the items already removed.
+	 * Called when a specific amount (amount) of an item is donated, checks whether the player is eligible have already been done and the items already removed.<br>
+	 * Does not change the progress in the base application! <br>
+	 * 
 	 * @param amount The amount that was donated.
 	 * @param player 
 	 */

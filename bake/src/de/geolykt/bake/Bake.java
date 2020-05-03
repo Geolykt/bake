@@ -362,6 +362,10 @@ public class Bake extends JavaPlugin {
 				if (args.length > 0) {
 					if (args[0].equals("max") || args[0].equals("all")) {
 						amount = Bake_Auxillary.removeEverythingInInventoryMatchesItem(player, Material.WHEAT);
+						if (amount == 0) {
+							player.sendMessage(ChatColor.DARK_RED + "You do not have any items that you can contribute right now.");
+							return true;
+						}
 						DataHandle.addContribution(amount);
 						lbHandle.update(player.getUniqueId(), amount);
 					} else {
