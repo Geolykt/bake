@@ -16,12 +16,12 @@ public class BakeEventListener implements Listener {
 
 	@EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (this.instance.DataHandle.notRewarded.contains(event.getPlayer().getUniqueId())) {
-        	this.instance.DataHandle.notRewarded.remove(event.getPlayer().getUniqueId());
+		if (instance.DataHandle.notRewarded.containsKey(event.getPlayer().getUniqueId())) {
+			Bake_Auxillary.rewardPlayer(event.getPlayer(), instance.DataHandle.activeQuest.getLoot(instance.API_LEVEL), instance.DataHandle.activeQuest.getThreshold(), instance.DataHandle.notRewarded.getOrDefault(event.getPlayer().getUniqueId(), 0));
+			
+        	instance.DataHandle.notRewarded.remove(event.getPlayer().getUniqueId());
         	instance.rewardPlayer(event.getPlayer());
         	event.getPlayer().sendMessage(msg);
-        }
-        
+		}
     }
-	
 }

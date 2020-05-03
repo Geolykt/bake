@@ -1,0 +1,63 @@
+quests:
+  names:
+#this list needs to have at least TWO entries, otherwise it borks itself!
+    - vanilla
+    - lie
+  vanilla:
+    type: contribution
+    material:
+      - wheat=1.0
+      - bread=4.0
+    threshold: 1000
+    rewards:
+      items:
+        - DIAMOND
+        - CAKE
+        - NETHER_STAR
+        - GOLD_INGOT
+        - COAL
+      DIAMOND:
+        'baseChance': 1
+        'pool': 16
+        'lore': §dThank you for participating!
+        'display_name': §9A DIAMOND
+        'enchantment': UNBREAKING@5
+      CAKE:
+        'baseChance': 1
+        'pool': 8
+        'lore': §dThank you for participating!| Here! Have a cake!
+        'display_name': §cYUMMY!
+        'enchantment': UNBREAKING@5|MENDING@1
+      NETHER_STAR:
+        'baseChance': 0.2
+        'pool': 1
+        'lore': §dThank you for participating!
+        'display_name': '§eSHINY!'
+        'enchantment': ''
+      GOLD_INGOT:
+        'baseChance': 1
+        'pool': 32
+        'lore': §dThank you for participating!
+        'display_name': ''
+        'enchantment': ''
+      COAL:
+        'baseChance': 1
+        'pool': 256
+        'lore': §dThank you for participating!
+        'display_name': ''
+        'enchantment': ''
+  lie:
+    type: contribution
+    material:
+      - wheat=1.0
+      - bread=4.0
+    threshold: 1000
+    rewards:
+      items:
+        - CAKE
+      CAKE:
+        'baseChance': 1
+        'pool': 64
+        'lore': §4 is a lie
+        'display_name': §4The cake
+        'enchantment': UNBREAKING@0

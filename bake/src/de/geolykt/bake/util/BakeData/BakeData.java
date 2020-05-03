@@ -6,12 +6,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import de.geolykt.bake.Bake;
+import de.geolykt.bake.Bake_Auxillary;
+import de.geolykt.bake.util.quest.Quest;
 
 /**
  * An abstract template class for chat handling when certain actions are done.
@@ -23,6 +27,8 @@ public abstract class BakeData {
 
 	protected Bake bakeInstance;
 	
+	public YamlConfiguration QuestCfg;
+	
 	/**
 	 * Keeps in mind how much has been contributed, rests every shutdown of the server, but does not reset when a project is finished.<br>
 	 * This may vary from implementation to implementation
@@ -31,13 +37,14 @@ public abstract class BakeData {
 	protected int totalContrib = 0;
 	
 	/**
-	 * Stores who has contributed in the current project.<br>
-	 * PlayerUUID -> Has contributed?<br>
-	 * If true, then the player has contributed, if false then the player hasn't contributed.<br>
-	 * It is recommended to interpret null or missing values as a false.<br>
-	 * @since 1.6.0
+	 * <b> Changed in 1.7.0 to a HashMap<UUID, Integer>!</b>
+	 * Stores who has contributed how much in the current project.<br>
+	 * PlayerUUID -> Has contributed how much?<br>
+	 * If greater to 0, then the player has contributed, if 0 or below then the player hasn't contributed.<br>
+	 * It is recommended to interpret null or missing values as a 0 or below.<br>
+	 * @since 1.6.0.<b> Changed in 1.7.0 to a HashMap<UUID, Integer>!</b>
 	 */
-	public HashMap<UUID, Boolean> projectReminderList = new HashMap<UUID, Boolean>();
+	public HashMap<UUID, Integer> projectReminderList = new HashMap<UUID, Integer>();
 	
 	/**
 	 * Stores who has contributed on the current day.<br>
@@ -49,22 +56,143 @@ public abstract class BakeData {
 	public HashMap<UUID, Boolean> dayReminderList = new HashMap<UUID, Boolean>();
 	
 	/**
+	 * <b> Changed in 1.7.0 to a HashMap<UUID, Integer>!</b>
+	 * Stores who has contributed how much in the current project.<br>
+	 * PlayerUUID -> Has contributed how much?<br>
+	 * If greater to 0, then the player has contributed, if 0 or below then the player hasn't contributed.<br>
+	 * It is recommended to interpret null or missing values as a 0 or below.<br>
 	 * Stores who has contributed but not yet recieved its rewards. This may be due to the player not having inventory space or logging off.
-	 * @since 1.6.0-pre1
+	 * @since 1.6.0-pre1, <b> Changed in 1.7.0 to a HashMap<UUID, Integer>!</b>
 	 */
-	public ArrayList<UUID> notRewarded = new ArrayList<UUID>();
+	public HashMap<UUID, Integer> notRewarded = new HashMap<UUID, Integer>();
+	
+	/**
+	 * Adds the contribution, which results in the BakeProgress value to DECREASE! <br>
+	 * Does not do further tests, like whether the Project is finished due to the operation
+	 * @param amount The amount to ADD
+	 */
+	public void addContribution(int amount) {
+		activeQuest.addEffort(amount);
+	}
+	
+	/**
+	 * The Participants of the current project
+	 * @since 1.7.0
+	 */
+	protected byte Participants = 0;
+	
+	/**
+	 * <b>UNUSED</b> <br>
+	 * The number of participants today
+	 * @since 1.7.0
+	 * @deprecated Use is unknown
+	 */
+	protected byte ParticipantsToday = 0;
+	
+	/**
+	 * Sets the number of today's participants
+	 * @param p
+	 * @since 1.7.0
+	 */
+	public void setParticipantsToday (byte p) {
+		ParticipantsToday = p;
+	}
+	
+	/**
+	 * The projects finished today
+	 * @since 1.7.0
+	 */
+	protected short Today = 0;
+	
+	/**
+	 * Sets the number of the project's participants
+	 * @param p new value
+	 * @since 1.7.0
+	 */
+	public void setParticipantCount (byte p) {
+		Participants = p;
+	}
+	
+	/**
+	 * The projects finished up to date
+	 * @since 1.7.0
+	 */
+	protected short Times = 0;
+	
+	/**
+	 * Manually sets the requirements that are LEFT in order for the quest to complete.
+	 * @param bakeProgress
+	 * @since 1.7.0
+	 */
+	public void setBakeProgress(int bakeProgress) {
+		activeQuest.setRequirement_left(bakeProgress);
+	}
+
+	/**
+	 * @param today the today to set
+	 */
+	public void setProjectsFinishedToday(short today) {
+		Today = today;
+	}
+
+	/**
+	 * @param times the times to set
+	 */
+	public void setTimes(short times) {
+		Times = times;
+	}
+
+	/**
+	 * @param bestAmount the bestAmount to set
+	 */
+	public void setBestAmount(short bestAmount) {
+		BestAmount = bestAmount;
+	}
+
+	/**
+	 * @param last the last to set
+	 */
+	public void setLastCompletion(Instant last) {
+		Last = last;
+	}
+
+	/**
+	 * @param record the record to set
+	 */
+	public void setRecord(Instant record) {
+		Record = record;
+	}
+
+	/**
+	 * The most projects finished in a day
+	 * @since 1.7.0
+	 */
+	protected short BestAmount = 0;
+	
+	/**
+	 * The last time a project was completed
+	 * @since 1.7.0
+	 */
+	protected Instant Last = Instant.EPOCH;
+	
+	/**
+	 * The day the most projects were finished
+	 * @since 1.7.0
+	 */
+	protected Instant Record = Instant.EPOCH;
 	
 	/**
 	 * @since 1.6.0
 	 * @param plugin The instance of the bake plugin.
 	 */
 	public BakeData(Bake plugin) {
-		notRewarded = new ArrayList<UUID>();
 		bakeInstance = plugin;
 	}
 	
 	/**
-	 * Called when a specific amount (amount) of an item is donated, checks wether the player is elegible have already been done and the items already removed.
+	 * Called when a specific amount (amount) of an item is donated, checks whether the player is eligible have already been done and the items already removed.<br>
+	 * Does not change the progress in the base application! <br>
+	 * 
 	 * @param amount The amount that was donated.
 	 * @param player 
 	 */
@@ -88,7 +216,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getProgress() {
-		return bakeInstance.getConfig().getInt("bake.wheat_Required", -1) - getRemaining();
+		return activeQuest.getThreshold() - getRemaining();
 	}
 
 	/**
@@ -97,7 +225,7 @@ public abstract class BakeData {
 	 * @return The remaining progress left to complete the current project.
 	 */
 	public int getRemaining() {
-		return bakeInstance.BakeProgress;
+		return activeQuest.getRequirement_left();
 	}
 	
 	/**
@@ -106,7 +234,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getRecordAmount() {
-		return bakeInstance.BestAmount;
+		return BestAmount;
 	}
 	
 	/**
@@ -115,7 +243,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public Instant getLastCompletion() {
-		return bakeInstance.Last;
+		return Last;
 	}
 	
 	/**
@@ -124,7 +252,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getParticipantAmount() {
-		return bakeInstance.Participants;
+		return Participants;
 	}
 	
 
@@ -134,7 +262,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public Instant getRecordDate() {
-		return bakeInstance.Record;
+		return Record;
 	}
 	
 
@@ -144,7 +272,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getProjectsFinishedToday() {
-		return bakeInstance.Today;
+		return Today;
 	}
 
 	/**
@@ -153,7 +281,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getOverallCompletionAmount() {
-		return bakeInstance.Times;
+		return Times;
 	}
 	
 	/**
@@ -162,7 +290,7 @@ public abstract class BakeData {
 	 * @since 1.6.0
 	 */
 	public int getParticipantAmountToday() {
-		return bakeInstance.ParticipantsToday;
+		return ParticipantsToday;
 	}
 	
 	/**
@@ -194,12 +322,16 @@ public abstract class BakeData {
 	}
 	
 	/**
-	 * Supplementary Function that is called when the project is finished. Does not handle things like Rewards, but resets requirements and can be used for other things.<br>
+	 * <b> IMPORTANT: </b> <br>
+	 * Following Bake <b>1.7.0</b>, this method is the backbone of the plugin and handles almost all background stuff.<br>
+	 * This includes: resetting the requirements, awarding the rewards and handling other stuff.<br>
+	 * <hr>
 	 * Per default called just after the isFinished() function
-	 * @since 1.6.0-pre4
+	 * @since 1.6.0-pre4, last revision: 1.7.0
 	 */
 	public void onFinish() {
-		bakeInstance.BakeProgress = bakeInstance.getConfig().getInt("bake.wheat_Required", -1);
+		this.notRewarded.putAll(Bake_Auxillary.rewardPlayers(this.projectReminderList, activeQuest.getLoot(Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])), activeQuest.getThreshold()));
+		newQuest();
 	}
 
 	/**
@@ -221,7 +353,33 @@ public abstract class BakeData {
 		return "unknown";
 	}
 
+	/**
+	 * @since 1.6.2
+	 * @param sender The sender
+	 * @param command The command
+	 * @param alias The alias used
+	 * @param args Arguments passed
+	 * @return A list with all the possible completions.
+	 */
 	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
 		return new ArrayList<String>();
+	}
+
+
+	/**
+	 * The currently active quest
+	 * @since 1.7.0
+	 */
+	public Quest activeQuest = null;
+	
+	/**
+	 * Creates a new quest and resets the "activeQuest" variable
+	 * @since 1.7.0
+	 */
+	public void newQuest() {
+		List <String> quests = QuestCfg.getStringList("quests.names");
+		bakeInstance.getLogger().info("[BAKE] Choosing new quest. Quests availiable: " + QuestCfg.get("quests.names", "NO").toString());
+		int questID = (int) Math.round(Math.random()*(quests.size()-1));
+		activeQuest = new Quest(QuestCfg, quests.get(questID));
 	}
 }

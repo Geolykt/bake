@@ -163,13 +163,14 @@ public class StringUtils {
 	 * @param player The string that replaces %PLAYER%, can be empty
 	 */
 	public String replaceFrequent(String s, String player) {
-		int required = bakeInstance.getConfig().getInt("bake.wheat_Required", -1);
-		
+		int required = bakeInstance.DataHandle.activeQuest.getThreshold();
 		
 		s = s.replaceAll("%INTPROG%", String.valueOf(bakeInstance.DataHandle.getProgress()));
 		s = s.replaceAll("%INTMAX%", "" + String.valueOf(required));
-		s = s.replaceAll("%PERCENT%", String.format("%2.02f",(double) (-(bakeInstance.DataHandle.getRemaining() - required) / (required + 0.0)*100)));
+		s = s.replaceAll("%PERCENT%", String.format("%2.02f",(double) (bakeInstance.DataHandle.getProgress() / (required + 0.0)*100)));
 		s = s.replaceAll("%PLAYER%", player);
+		s = s.replaceAll("%ALLTIME_CONTRIB%", String.valueOf(bakeInstance.DataHandle.getTotalContributed()));
+		s = s.replaceAll("%LEFT%", String.valueOf(bakeInstance.DataHandle.getRemaining()));
 		return s;
 	}
 }
