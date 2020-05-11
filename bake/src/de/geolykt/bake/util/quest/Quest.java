@@ -58,10 +58,6 @@ public class Quest {
 		matches = new HashMap<Material, Double>();
 		for (String s : config.getStringList("quests." + name + ".material")) {
 			matches.put(Material.getMaterial(s.toUpperCase(Locale.ROOT).split("=")[0]), Double.valueOf(s.split("=")[1]));
-			Bukkit.getLogger().info("-----------");
-			Bukkit.getLogger().info(s.toUpperCase(Locale.ROOT));
-			Bukkit.getLogger().info(Material.getMaterial(s.toUpperCase(Locale.ROOT).split("=")[0]).toString());
-			Bukkit.getLogger().info(Double.valueOf(s.split("=")[1]).toString());
 		}
 	}
 

@@ -1,63 +1,100 @@
 quests:
+  #these are the quests that are used first, each having the same chance of getting rolled
   names:
-#this list needs to have at least TWO entries, otherwise it borks itself!
-    - vanilla
-    - lie
-  vanilla:
+    #this list needs to have at least TWO entries, otherwise it borks itself! (it may also not be the case, but I won't check)
+    #you may emulate increased chance of rolling via having duplicate entries
+    - startNode
+    - startNode
+  startNode:
+    #the type of the quest, currently supported: contribution(adds contribution via donating items)
     type: contribution
+    #the material, that needs to be donated compared of it's worth:
     material:
-      - wheat=1.0
-      - bread=4.0
+      - bone=1.0
+      - bone_meal=0.2
+    #how much should be donated to complete
     threshold: 1000
+    #the rewards
     rewards:
+      #the items that will be rewarded, needs to be shown, doesn't really work with duplicates
       items:
-        - DIAMOND
-        - CAKE
+        - WITHER_SKELETON_SKULL
+        - WITHER_ROSE
         - NETHER_STAR
-        - GOLD_INGOT
-        - COAL
-      DIAMOND:
+      WITHER_SKELETON_SKULL:
         'baseChance': 1
         'pool': 16
-        'lore': §dThank you for participating!
-        'display_name': §9A DIAMOND
-        'enchantment': UNBREAKING@5
-      CAKE:
-        'baseChance': 1
-        'pool': 8
-        'lore': §dThank you for participating!| Here! Have a cake!
-        'display_name': §cYUMMY!
-        'enchantment': UNBREAKING@5|MENDING@1
+        'lore': §dFrom the wise wizards!
+        'display_name': ''
+        'enchantment': ''
+      WITHER_ROSE:
+        #drops half the time
+        'baseChance': 0.5
+        'pool': 3
+        'lore': ''
+        'display_name': '§l§4Genuine Rose'
+        'enchantment': ''
       NETHER_STAR:
         'baseChance': 0.2
         'pool': 1
-        'lore': §dThank you for participating!
-        'display_name': '§eSHINY!'
-        'enchantment': ''
-      GOLD_INGOT:
-        'baseChance': 1
-        'pool': 32
-        'lore': §dThank you for participating!
+        'lore': '§4 Priceless'
         'display_name': ''
-        'enchantment': ''
-      COAL:
-        'baseChance': 1
-        'pool': 256
-        'lore': §dThank you for participating!
-        'display_name': ''
-        'enchantment': ''
-  lie:
+        #to increase uniqueness
+        'enchantment': 'UNBREAKING@1|MENDING@1'
+    #the node that should be used after this node
+    childNode: endNode
+    #tooltip
+    tooltip: 'Some rather unknown wizards have entered the kingdom and have asked you to give them some bones so they can study on them.'
+    #vault money that should be added to contributors when the project finishes
+    addMoney: 100
+  endNode:
     type: contribution
     material:
-      - wheat=1.0
-      - bread=4.0
-    threshold: 1000
+      - OAK_SAPLING=1.0
+      - ACACIA_SAPLING=1.0
+      - JUNGLE_SAPLING=1.0
+      - DARK_OAK_SAPLING=1.0
+      - BIRCH_SAPLING=1.0
+      - SPRUCE_SAPLING=1.0
+    threshold: 500
     rewards:
       items:
-        - CAKE
-      CAKE:
+        - DANDELION
+        - PAPER
+        - ROSE_BUSH
+        - FERN
+        - POPPY
+      DANDELION:
+        'baseChance': 0.75
+        'pool': 32
+        'lore': ''
+        'display_name': ''
+        'enchantment': ''
+      ROSE_BUSH:
+        'baseChance': 0.8
+        'pool': 32
+        'lore': ''
+        'display_name': ''
+        'enchantment': ''
+      FERN:
+        'baseChance': 0.8
+        'pool': 32
+        'lore': ''
+        'display_name': ''
+        'enchantment': ''
+      POPPY:
+        'baseChance': 0.6
+        'pool': 32
+        'lore': ''
+        'display_name': ''
+        'enchantment': ''
+      PAPER:
         'baseChance': 1
-        'pool': 64
-        'lore': §4 is a lie
-        'display_name': §4The cake
-        'enchantment': UNBREAKING@0
+        'pool': 100
+        'lore': 'Remind the admins to remove this item :) | Also, don't cut yourself with this piece of paper.'
+        'display_name': 'Reminder from the plugin developer'
+        'enchantment': 'UNBREAKING@255|SHARPNESS@255'
+    #loop to the start
+    childNode: startNode
+    tooltip: 'Nature should not be destroyed some said, perhaps you can help preserve the nature? Gather saplings.'
+    addMoney: 100

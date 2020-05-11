@@ -96,6 +96,13 @@ import net.milkbowl.vault.economy.Economy;
  * 1.7.0: Now Pooling quests, which results in more active donors getting a greater reward. <br>
  * 1.7.0: Now using quests instead of the projects, which allow for far further possibilities. <br>
  * 1.7.0: Added placeholder: "%ALLTIME_CONTRIB%", which stands for the amount of contributions since the 1.6.2 update. <br> 
+ * 1.7.0: Fixed bugs with empty contributions<br>
+ * 1.7.0: Added placeholder "%LEFT%" displaying what's remaining<br>
+ * </li><li>
+ * 1.8.0: Implemented Quest Trees
+ * 1.8.0: Quests now can give money again
+ * 1.8.0: Added Quest Tooltips
+ * 1.8.0: Reworked default configurations
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
@@ -109,6 +116,8 @@ import net.milkbowl.vault.economy.Economy;
  * 
  * @author Geolykt
  * @since 0.0.1 - SNAPSHOT
+ * 
+ * 
  *
  */
 public class Bake extends JavaPlugin {
@@ -148,7 +157,6 @@ public class Bake extends JavaPlugin {
 	public Leaderboard lbHandle = null;
 
 	public boolean useLeaderboard = false;
-	
 	
 	@Override
 	public void onEnable () {

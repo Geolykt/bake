@@ -2,7 +2,7 @@
 bake:
   general:
     #version of the configuration, leave it be
-    configVersion: 6
+    configVersion: 7
     #amounts of 'slots' used, the more, the more items you can award, but there might be lag.
     slots: 5
     #should only contributors be awarded. (non-contributors will not recieve anything)
@@ -25,16 +25,12 @@ bake:
   chat:
     recordSurpassBroadcast: '§6[BAKE] The previous record of %RECORD% on the %RECORDDATE%
       was broken by the new record of %TODAY%!'
-    progress2: "§b=========== Running Bake %VERSION%  ============ \n §bThe Bake Progress\
-      \ is: %INTPROG% of %INTMAX% \n §bSo we are %PERCENT% % done! Keep up! \n§b ======================================="
-    bakestats: "§b========================================\n The bake project was\
-      \ completed %TIMES% times in total, the last time on %LAST%.§b \n The most projects\
-      \ were completed on %RECORDDATE% with %RECORD% times. \n§bA total of §c%PARTICIPANTS%§\
-      b participated in the recent project and %ALLTIME_CONTRIB% has been contributed since time unknown.\n§b========================================"
+    progress2: "§b%TOOLTIP%\n §r %PERCENT% % done! (%INTPROG% / %INTMAX%)"
+    bakestats: "Completions: %TIMES% \n Record: %RECORD% at %RECORDDATE% \n Last finished: %LAST% \n %PARTICIPANTS% Have contributed."
     contr2: '%INTPROG% was added to the project! Thanks!'
     global:
-      contr2: '§6[BAKE]§r%PLAYER%§r§6 has contributed %INTPROG% to the bake projects! We are now
-        a bit closer to the rewards!'
+      contr2: '§6[BAKE]§r%PLAYER%§r§6 has contributed %INTPROG% to the bake projects! We are now a bit closer to the rewards!'
+      #TODO: cooldown perhaps?
     finish2: §l§bThe bake project is finished! Everyone gets the rewards!
     leaderboard:
       'pre': "§b===== Bake best contributors ====="

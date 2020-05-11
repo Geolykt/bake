@@ -27,7 +27,7 @@ public class Bake_Auxillary {
 	 * The version of the plugin in the MAJOR.MINOR.PATCH.ANNOTATION format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.7.0";
+	public static final String PLUGIN_VERSION = "1.8.0";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
@@ -39,18 +39,20 @@ public class Bake_Auxillary {
 	 * 0x5=1.6.1
 	 * 0x6=1.6.2
 	 * 0x7=1.7.0
+	 * 0x8=1.8.0
 	 * @since 1.5.1
 	 */
-	public static final byte PLUGIN_VERSION_ID = 0x7;
+	public static final byte PLUGIN_VERSION_ID = 0x8;
 	
 	/**
-	 * returns the length of the longest String in an array.
-	 * @deprecated Not used and thus not tested in recent versions. Will be used for <s>1.6</s> <i>1.8?</i> (hopefully)<br>
-	 * TODO Use this
+	 * returns the length of the longest String in an array.<br>
+	 * <b> DO NOT USE</b><br>
+	 * TODO Remove this
 	 * 
 	 * @param s Array of strings to be looked for
 	 * @return The length of the longest String in the array
 	 * @since 1.5.0
+	 * @deprecated Will be removed in 1.9.0 as it is not used and its implementation is considered useless.
 	 */
 	public static int getLongest (String [] s) {
 		int i = 0;
