@@ -185,7 +185,7 @@ public class Bake extends JavaPlugin {
 		}
 		metricsRunnable.runTaskLater(this, 1L);
 		
-		if (getConfig().getDouble("bake.award.money", 0.0) > 0.0) {
+		if (getConfig().getBoolean("bake.general.useVault", true) == true) {
 			if (!setupEconomy()) {
 				//Not hooked into Vault.
 				getLogger().warning(ChatColor.YELLOW + "Vault (or an Economy plugin) was not installed or initiated too late. This is not much of a problem, but money won't be awarded.");

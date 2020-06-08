@@ -19,6 +19,8 @@ bake:
     useLeaderboard: true
     #should the player we rewarded when they rejoin after they contributed and the project was finished in their absence?
     rewardLater: true
+    #whether vault should be used
+    useVault: true
   metrics:
     #set this to false if you don't want bake to contact https://geolykt.de/src/bake/bakeMetrics.php
     opt-out: false
