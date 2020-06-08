@@ -25,7 +25,9 @@ bake:
   chat:
     recordSurpassBroadcast: '§6[BAKE] The previous record of %RECORD% on the %RECORDDATE%
       was broken by the new record of %TODAY%!'
+    #used in the /bake message
     progress2: "§b%TOOLTIP%\n §r %PERCENT% % done! (%INTPROG% / %INTMAX%)"
+    #used in the /bakestats message
     bakestats: "Completions: %TIMES% \n Record: %RECORD% at %RECORDDATE% \n Last finished: %LAST% \n %PARTICIPANTS% Have contributed."
     contr2: '%INTPROG% was added to the project! Thanks!'
     global:
@@ -34,6 +36,7 @@ bake:
     finish2: §l§bThe bake project is finished! Everyone gets the rewards!
     leaderboard:
       'pre': "§b===== Bake best contributors ====="
+      #TODO: maybe find a better way to make this a thing. This is a terrible way of doing it as it's in plaintext
       'mid': "%d.: %-31s :§4 %s"
       'post': "§b==============================="
       'unavail': "§4Bake leaderboards are not supported right now right here. Try again later."

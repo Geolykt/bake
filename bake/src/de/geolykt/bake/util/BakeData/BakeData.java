@@ -374,11 +374,19 @@ public abstract class BakeData {
 	
 	/**
 	 * Creates a new quest and resets the "activeQuest" variable
-	 * @since 1.7.0
+	 * @since 1.7.0, last revision: 1.8.0
 	 */
 	public void newQuest() {
-		List <String> quests = QuestCfg.getStringList("quests.names");
-		bakeInstance.getLogger().info("[BAKE] Choosing new quest. Quests availiable: " + QuestCfg.get("quests.names", "NO").toString());
+		List <String> quests;
+		if (activeQuest == null) {
+			quests = QuestCfg.getStringList("quests.names");
+		} else {
+			quests = activeQuest.getSuccessors();
+			if (quests == null) {
+				quests = QuestCfg.getStringList("quests.names");
+			}
+		}
+		bakeInstance.getLogger().info("[BAKE] Choosing new quest. Quests available: " + QuestCfg.get("quests.names", "NO").toString());
 		int questID = (int) Math.round(Math.random()*(quests.size()-1));
 		activeQuest = new Quest(QuestCfg, quests.get(questID));
 	}

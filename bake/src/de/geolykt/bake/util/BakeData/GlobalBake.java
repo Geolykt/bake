@@ -21,8 +21,9 @@ import de.geolykt.bake.Bake;
  * @author Geolykt
  * @since 1.6.0
  * 
- *
+ *@deprecated This bakeData implementation is not used.
  */
+@Deprecated
 public class GlobalBake extends BakeData {
 	
 	/**

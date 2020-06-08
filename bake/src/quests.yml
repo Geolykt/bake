@@ -1,7 +1,7 @@
 quests:
   #these are the quests that are used first, each having the same chance of getting rolled
   names:
-    #this list needs to have at least TWO entries, otherwise it borks itself! (it may also not be the case, but I won't check)
+    #these are the inital quests that are able to be called. They are equally weighted so
     #you may emulate increased chance of rolling via having duplicate entries
     - startNode
     - startNode
@@ -42,10 +42,12 @@ quests:
         #to increase uniqueness
         'enchantment': 'UNBREAKING@1|MENDING@1'
     #the node that should be used after this node
-    childNode: endNode
+    childNode: 
+      - endNode
     #tooltip
-    tooltip: 'Some rather unknown wizards have entered the kingdom and have asked you to give them some bones so they can study on them.'
+    tooltip: '§3Some rather unknown wizards have entered the kingdom and have asked you to give them some bones so they can study on them. §r§1 They want a total of §2%INTMAX%§1 and got §2%INTPROG%§1, so §2%PERCENT%§1% done.§r §4Keep it up!'
     #vault money that should be added to contributors when the project finishes
+    #this is not pooled
     addMoney: 100
   endNode:
     type: contribution
@@ -89,12 +91,13 @@ quests:
         'display_name': ''
         'enchantment': ''
       PAPER:
-        'baseChance': 1
+        'baseChance': 1.0 #don't forget the decimal point, even if it wouldn't really be needed for your perspective. It's needed :)
         'pool': 100
-        'lore': 'Remind the admins to remove this item :) | Also, don't cut yourself with this piece of paper.'
+        'lore': "Remind the admins to remove this item :) | Also, don't cut yourself with this piece of paper."
         'display_name': 'Reminder from the plugin developer'
         'enchantment': 'UNBREAKING@255|SHARPNESS@255'
     #loop to the start
-    childNode: startNode
-    tooltip: 'Nature should not be destroyed some said, perhaps you can help preserve the nature? Gather saplings.'
+    childNode: 
+      - startNode
+    tooltip: 'Nature should not be destroyed some said, perhaps you can help preserve the nature? Gather saplings. §r§1 The goal is §2%INTMAX%§1 and we reached §2%INTPROG%§, so §2%PERCENT%§1% done.§r §4Keep it up!'
     addMoney: 100

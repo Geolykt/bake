@@ -1,6 +1,7 @@
 package de.geolykt.bake.util.quest;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -108,5 +109,14 @@ public class Quest {
 	 */
 	public BakeLootTable getLoot(int APILevel) {
 		return new BakeLootTable(config, "quests." + name + ".rewards", APILevel);
+	}
+	
+	/**
+	 * Returns a string that is the name of the successor quest name of the current quest,
+	 * @return The child quest
+	 * @since 1.8.0
+	 */
+	public List<String> getSuccessors() {
+		return config.getStringList("quests." + name + ".childNode");
 	}
 }
