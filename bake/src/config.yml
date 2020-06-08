@@ -45,6 +45,7 @@ bake:
     gBakeRefresh: "§4[BAKE] §6 Other servers have contributed %INTPROG%!"
     welcomeBack: "§6[BAKE] During your absence the Bake project has been finished! As a contributor, you get some rewards!"
   #don't mess with these values, well you can but it doesn't give you much
+  #this should be relocated to a dedicated file. This removes the need of saving the file and removing the comments.
   save:
     times: 0
     last: '1970-01-01T00:00:00Z'

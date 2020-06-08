@@ -277,6 +277,7 @@ public class Bake_Auxillary {
 
 	/**
 	 * Removes every itemStack in a player's inventory that matches the Materials items and returns the amount that was removed multiplied with their provided value. The value is then rounded to an integer.
+	 * <br> Note: in 1.7.0 an issue would occur where this method would not return correct values.
 	 * @param player The player whose inventory should be checked
 	 * @param matches The Materials to match against paired with their values
 	 * @return The amount of items that were removed.
@@ -285,7 +286,7 @@ public class Bake_Auxillary {
 	public static int removeEverythingInInventoryMatchesItems(Player player, Map<Material, Double> matches) {
 		int amount = 0;
 		for (Entry<Material, Double> entry :matches.entrySet()) {
-			amount = (int) Math.round(entry.getValue() * removeEverythingInInventoryMatchesItem(player, entry.getKey()));
+			amount += (int) Math.round(entry.getValue() * removeEverythingInInventoryMatchesItem(player, entry.getKey()));
 		}
 		return amount;
 	}
