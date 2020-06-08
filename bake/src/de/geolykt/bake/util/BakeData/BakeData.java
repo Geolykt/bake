@@ -203,6 +203,21 @@ public abstract class BakeData {
 	 * @param player The player that called the command
 	 */
 	public abstract void onBakeCommand(Player player);
+
+	/**
+	 * Called when something that is not a player calls /bake.
+	 * @param sender The commandSender that called the action
+	 * @since 1.8.0
+	 * @throws IllegalArgumentException When the sender is of the Player instance
+	 */
+	public void onBakeCommandByNonPlayer(CommandSender sender) {
+		if (sender instanceof Player) {
+			throw new IllegalArgumentException("Invalid command sender. The command sender is a player while the method does not expect it to be a player.");
+		}
+		String s = this.bakeInstance.StringParser.BakeCommandString;
+		s = this.bakeInstance.StringParser.replaceFrequent(s, "");
+		sender.sendMessage(s);
+	}
 	
 	/**
 	 * Called when a player calls /bakestats

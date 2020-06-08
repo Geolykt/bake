@@ -340,7 +340,7 @@ public class Bake extends JavaPlugin {
 			} else if (sender instanceof Player) {
 				DataHandle.onBakeCommand((Player)sender);
 			} else {
-				sender.sendMessage("Following update 1.6.0, you must be a player to call that command");
+				DataHandle.onBakeCommandByNonPlayer(sender);
 			}
 			return true;
 			
