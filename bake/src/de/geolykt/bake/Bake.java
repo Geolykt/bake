@@ -227,9 +227,44 @@ public class Bake extends JavaPlugin {
 				getLogger().severe(ChatColor.DARK_RED + "The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually!");
 			} else if (getConfig().getInt("bake.general.configVersion", -1) == 6) {
 				//1.7.0 -> 1.8.0 patches
+				//Init savedata.yml
+				//Creates savedata.yml, if not already existing
+				File savedataFile = new File(getDataFolder(), "savedata.yml");
+				if (!savedataFile.exists()) {
+					//savedata.yml does not exist
+					//-> create savedata.yml
+					saveResource("savedata.yml", false);
+				}
+				//Sets the configuration, if null, otherwise it leaves it be
+				if (savedataConfiguration == null) {
+					try {
+						savedataConfiguration = new YamlConfiguration();
+						savedataConfiguration.load(savedataFile);
+					} catch (IOException | InvalidConfigurationException e) {
+						getLogger().severe("[Bake] Error while reading save files. Please report this bug along with the stacktrace.");
+						e.printStackTrace();
+						return;
+					}
+				}
+				
+			
+				savedataConfiguration.set("bake.save.times", getConfig().getInt("bake.save.times", 0));
+				savedataConfiguration.set("bake.save.last", getConfig().getString("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH)));
+				savedataConfiguration.set("bake.save.recordtime", getConfig().getString("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH)));
+				savedataConfiguration.set("bake.save.today", 0);
+				savedataConfiguration.set("bake.save.record", getConfig().getInt("bake.save.record", 0));
+				savedataConfiguration.set("bake.save.all", DataHandle.getTotalContributed());
+				savedataConfiguration.set("bake.save.participants", getConfig().getInt("bake.save.participants", 0));
+				savedataConfiguration.set("bake.save.participantsToday", getConfig().getInt("bake.save.participantsToday", 0));
+				try {
+					savedataConfiguration.save(new File(getDataFolder(), "savedata.yml"));
+				} catch (IOException e) {
+					getLogger().severe("[Bake] An issue occured, Perhaps another thread is trying to access the file?");
+					e.printStackTrace();
+				}
+				getConfig().set("bake.general.configVersion", 7); //Patches applied
 			}
 		}
-
 		//Load values from the saveData
 		readValues();
 		
@@ -284,7 +319,6 @@ public class Bake extends JavaPlugin {
 			saveResource("savedata.yml", false);
 		}
 		//Sets the configuration, if null, otherwise it leaves it be
-		getLogger().info(savedataFile.toString());
 		if (savedataConfiguration == null) {
 			try {
 				savedataConfiguration = new YamlConfiguration();
@@ -295,7 +329,6 @@ public class Bake extends JavaPlugin {
 				return;
 			}
 		}
-		getLogger().info(savedataConfiguration.toString());
 		
 		DataHandle.setLastCompletion(Instant.parse(savedataConfiguration.getString("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH))));
 		if (!DataHandle.getLastCompletion().equals(Instant.EPOCH)) {
