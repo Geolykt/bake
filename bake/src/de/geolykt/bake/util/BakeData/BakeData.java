@@ -203,6 +203,22 @@ public abstract class BakeData {
 	 * @param player The player that called the command
 	 */
 	public abstract void onBakeCommand(Player player);
+
+	/**
+	 * Called when something that is not a player calls /bake.
+	 * @param sender The commandSender that called the action
+	 * @since 1.8.0
+	 * @throws IllegalArgumentException When the sender is of the Player instance
+	 */
+	public void onBakeCommandByNonPlayer(CommandSender sender) {
+		if (sender instanceof Player) {
+			throw new IllegalArgumentException("Invalid command sender. The command sender is a player while the method does not expect it to be a player.");
+		}
+		String s = this.bakeInstance.StringParser.BakeCommandString;
+		s = bakeInstance.StringParser.getFormattedTooltip(activeQuest.getRawTooltip(), "");
+		s = this.bakeInstance.StringParser.replaceFrequent(s, "");
+		sender.sendMessage(s);
+	}
 	
 	/**
 	 * Called when a player calls /bakestats
@@ -374,12 +390,43 @@ public abstract class BakeData {
 	
 	/**
 	 * Creates a new quest and resets the "activeQuest" variable
-	 * @since 1.7.0
+	 * @since 1.7.0, last revision: 1.8.0
 	 */
 	public void newQuest() {
-		List <String> quests = QuestCfg.getStringList("quests.names");
-		bakeInstance.getLogger().info("[BAKE] Choosing new quest. Quests availiable: " + QuestCfg.get("quests.names", "NO").toString());
+		List <String> quests;
+		if (activeQuest == null) {
+			quests = QuestCfg.getStringList("quests.names");
+		} else {
+			quests = activeQuest.getSuccessors();
+			if (quests == null) {
+				quests = QuestCfg.getStringList("quests.names");
+			}
+		}
+		bakeInstance.getLogger().info("[BAKE] Choosing new quest. Quests available: " + quests.toString());
 		int questID = (int) Math.round(Math.random()*(quests.size()-1));
 		activeQuest = new Quest(QuestCfg, quests.get(questID));
+	}
+
+	/**
+	 * Creates a new quest with the specified name. If the quest was not found, it defaults to the default newQuest() without arguments.
+	 * @param name the name of the quest
+	 * @since 1.8.0
+	 */
+	public void newQuest(String name) {
+		//Prevent NullPointerExcpetions
+		if (name == null) {
+			bakeInstance.getLogger().info("[Bake] Null name for new generated quest. Falling back to default quest selection.");
+			newQuest();
+			return;
+		}
+		
+		if (QuestCfg.getString("quests." + name + ".type", "N/A").equals("N/A")) {
+			bakeInstance.getLogger().info("[Bake] Invalid name (" + name + ") for new generated quest. Falling back to default quest selection.");
+			//Invalid quest name
+			newQuest();
+		} else {
+			//Valid quest name
+			activeQuest = new Quest(QuestCfg, name);
+		}
 	}
 }

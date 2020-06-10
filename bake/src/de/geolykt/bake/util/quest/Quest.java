@@ -1,6 +1,8 @@
 package de.geolykt.bake.util.quest;
 
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -36,6 +38,10 @@ public class Quest {
 	
 	private YamlConfiguration config;
 	
+	private Instant begun;
+
+	protected String tooltip_Raw;
+	
 	/**
 	 * Loads a quest from the specified file
 	 * @param questCfg The file from which the quest should be loaded.
@@ -58,13 +64,27 @@ public class Quest {
 		matches = new HashMap<Material, Double>();
 		for (String s : config.getStringList("quests." + name + ".material")) {
 			matches.put(Material.getMaterial(s.toUpperCase(Locale.ROOT).split("=")[0]), Double.valueOf(s.split("=")[1]));
-			Bukkit.getLogger().info("-----------");
-			Bukkit.getLogger().info(s.toUpperCase(Locale.ROOT));
-			Bukkit.getLogger().info(Material.getMaterial(s.toUpperCase(Locale.ROOT).split("=")[0]).toString());
-			Bukkit.getLogger().info(Double.valueOf(s.split("=")[1]).toString());
 		}
+		
+		//set tooltip
+		tooltip_Raw = config.getString("quests." + name + ".tooltip", "");
+		
+		begun = Instant.now();
 	}
 
+	/**
+	 * Loads a quest from the specified file
+	 * @param questCfg The file from which the quest should be loaded.
+	 * @param questNameID The unique identifier for the plugin
+	 * @param began The specified Instant the quest should have started, useful when storing and saving this quest externally.
+	 * @throws NoSuchElementException, if the questType is invalid.
+	 * @since 1.8.0
+	 */
+	public Quest(YamlConfiguration questCfg, String questNameID, Instant began) {
+		this(questCfg,questNameID);
+		begun = began;
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -112,5 +132,31 @@ public class Quest {
 	 */
 	public BakeLootTable getLoot(int APILevel) {
 		return new BakeLootTable(config, "quests." + name + ".rewards", APILevel);
+	}
+	
+	/**
+	 * Returns a string that is the name of the successor quest name of the current quest,
+	 * @return The child quest
+	 * @since 1.8.0
+	 */
+	public List<String> getSuccessors() {
+		return config.getStringList("quests." + name + ".childNode");
+	}
+	
+	/**
+	 * Returns the raw unformatted tooltip string.
+	 * @since 1.8.0
+	 * @return The unformated string that is defined in the quests.yml
+	 */
+	public String getRawTooltip() {
+		return tooltip_Raw;
+	}
+	
+	/**
+	 * Returns when the Quest began.
+	 * @return An Instant which should be roughly the equilavent when the quest started.
+	 */
+	public Instant getQuestBeginningInstant() {
+		return begun;
 	}
 }

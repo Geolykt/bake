@@ -27,7 +27,7 @@ public class Bake_Auxillary {
 	 * The version of the plugin in the MAJOR.MINOR.PATCH.ANNOTATION format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.7.0";
+	public static final String PLUGIN_VERSION = "1.8.0";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
@@ -39,18 +39,20 @@ public class Bake_Auxillary {
 	 * 0x5=1.6.1
 	 * 0x6=1.6.2
 	 * 0x7=1.7.0
+	 * 0x8=1.8.0
 	 * @since 1.5.1
 	 */
-	public static final byte PLUGIN_VERSION_ID = 0x7;
+	public static final byte PLUGIN_VERSION_ID = 0x8;
 	
 	/**
-	 * returns the length of the longest String in an array.
-	 * @deprecated Not used and thus not tested in recent versions. Will be used for <s>1.6</s> <i>1.8?</i> (hopefully)<br>
-	 * TODO Use this
+	 * returns the length of the longest String in an array.<br>
+	 * <b> DO NOT USE</b><br>
+	 * TODO Remove this
 	 * 
 	 * @param s Array of strings to be looked for
 	 * @return The length of the longest String in the array
 	 * @since 1.5.0
+	 * @deprecated Will be removed in 1.9.0 as it is not used and its implementation is considered useless.
 	 */
 	public static int getLongest (String [] s) {
 		int i = 0;
@@ -223,27 +225,24 @@ public class Bake_Auxillary {
 			is [i] = new ItemStack(table.items[i]);
 			is [i].setItemMeta(table.itemMeta[i]);
 		}
+		//TODO this may be made more efficient, perhaps iterating over the onlinePlayers first? Nonetheless, the efficiency should be debated and what the most efficent approach is
+		
 		//Loop through items
 		for (int i = 0; i < table.items.length; i++) {
 			//Chance based things
 			if (Math.random()<table.baseChances[i]) {
-				//cycle through players
-				for (UUID playerID : players.keySet()) {
-					//Get whether the player is online
-					if (Bukkit.getPlayer(playerID).isOnline()) {
+				//cycle through online players
+				for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+					if (players.containsKey(onlinePlayer.getUniqueId())) {
 						//Get how much the player is eligible on getting & send the data to the Auxiliary
-						Bake_Auxillary.givePlayerItem(Bukkit.getPlayer(playerID), is[i], (int) Math.round(table.pool_amount[i]*(threshold/players.getOrDefault(playerID,0))));
+						Bake_Auxillary.givePlayerItem(Bukkit.getPlayer(onlinePlayer.getUniqueId()), is[i], (int) Math.round(table.pool_amount[i]/(threshold/players.getOrDefault(onlinePlayer.getUniqueId(),0))));
 					}
 				}
 			}
 		}
 		//Remove online players from the list, offline players should remain.
-		for (UUID playerID : players.keySet()) {
-			//Get whether the player is online
-			if (Bukkit.getPlayer(playerID).isOnline()) {
-				//Remove the player from the map
-				players.remove(playerID);
-			}
+		for (Player p : Bukkit.getOnlinePlayers()) {
+			players.remove(p.getUniqueId());
 		}
 		return players;
 	}
@@ -275,6 +274,7 @@ public class Bake_Auxillary {
 
 	/**
 	 * Removes every itemStack in a player's inventory that matches the Materials items and returns the amount that was removed multiplied with their provided value. The value is then rounded to an integer.
+	 * <br> Note: in 1.7.0 an issue would occur where this method would not return correct values.
 	 * @param player The player whose inventory should be checked
 	 * @param matches The Materials to match against paired with their values
 	 * @return The amount of items that were removed.
@@ -283,7 +283,7 @@ public class Bake_Auxillary {
 	public static int removeEverythingInInventoryMatchesItems(Player player, Map<Material, Double> matches) {
 		int amount = 0;
 		for (Entry<Material, Double> entry :matches.entrySet()) {
-			amount = (int) Math.round(entry.getValue() * removeEverythingInInventoryMatchesItem(player, entry.getKey()));
+			amount += (int) Math.round(entry.getValue() * removeEverythingInInventoryMatchesItem(player, entry.getKey()));
 		}
 		return amount;
 	}

@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.geolykt</groupId>
   <artifactId>bake</artifactId>
-  <version>1.7.0-RELEASE</version>
+  <version>1.8.0-RELEASE</version>
   <name>Bake</name>
   
   <repositories>
@@ -93,6 +93,7 @@
     			<include>config.yml</include>
     			<include>plugin.yml</include>
     			<include>quests.yml</include>
+    			<include>savedata.yml</include>
     		</includes>
     	</resource>
     </resources>

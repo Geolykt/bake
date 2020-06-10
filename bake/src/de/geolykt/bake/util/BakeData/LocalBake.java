@@ -35,8 +35,9 @@ public class LocalBake extends BakeData {
 
 	@Override
 	public void onBakeCommand(Player player) {
-		String s = this.bakeInstance.StringParser.BakeCommandString;
-		s = this.bakeInstance.StringParser.replaceFrequent(s, player.getDisplayName());
+		String s = bakeInstance.StringParser.BakeCommandString;
+		s = bakeInstance.StringParser.getFormattedTooltip(activeQuest.getRawTooltip(), player.getDisplayName());
+		s = bakeInstance.StringParser.replaceFrequent(s, player.getDisplayName());
 		player.sendMessage(s);
 	}
 

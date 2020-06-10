@@ -96,6 +96,17 @@ import net.milkbowl.vault.economy.Economy;
  * 1.7.0: Now Pooling quests, which results in more active donors getting a greater reward. <br>
  * 1.7.0: Now using quests instead of the projects, which allow for far further possibilities. <br>
  * 1.7.0: Added placeholder: "%ALLTIME_CONTRIB%", which stands for the amount of contributions since the 1.6.2 update. <br> 
+ * 1.7.0: Fixed bugs with empty contributions<br>
+ * 1.7.0: Added placeholder "%LEFT%" displaying what's remaining<br>
+ * </li><li>
+ * 1.8.0: Implemented Quest Trees<br>
+ * 1.8.0: TODO Quests now can give money again<br>
+ * 1.8.0: Added Quest tooltip<br>
+ * 1.8.0: Reworked default configurations<br>
+ * 1.8.0: Added quest expire date<br>
+ * 1.8.0: Quests now no longer reset after restart<br>
+ * 1.8.0: Fixed a bug which would occur when multiple players contributed<br>
+ * 1.8.0: Fixed a bug in which contributors who donated less get more rewards<br>
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
@@ -109,6 +120,8 @@ import net.milkbowl.vault.economy.Economy;
  * 
  * @author Geolykt
  * @since 0.0.1 - SNAPSHOT
+ * 
+ * 
  *
  */
 public class Bake extends JavaPlugin {
@@ -146,12 +159,19 @@ public class Bake extends JavaPlugin {
 	 * @since 1.6.0-pre3
 	 */
 	public Leaderboard lbHandle = null;
+	
+	private YamlConfiguration savedataConfiguration = null;
 
 	public boolean useLeaderboard = false;
 	
-	
 	@Override
 	public void onEnable () {
+
+		File temp = new File(getDataFolder(), "config.yml");
+		if (!temp.exists()) {
+			saveResource("config.yml", false);
+			reloadConfig();
+		}
 		
 		Bukkit.getPluginManager().registerEvents(new BakeEventListener(this, getConfig().getString("bake.chat.welcomeBack", "N/A")), this);
 		
@@ -160,9 +180,6 @@ public class Bake extends JavaPlugin {
 		
 		//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
 		API_LEVEL = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
-		
-		// Configuration initialization
-		saveDefaultConfig();
 
 		MeticsClass metricsRunnable = new MeticsClass();
 		if (getConfig().getBoolean("bake.firstRun", true)) {
@@ -177,7 +194,7 @@ public class Bake extends JavaPlugin {
 		}
 		metricsRunnable.runTaskLater(this, 1L);
 		
-		if (getConfig().getDouble("bake.award.money", 0.0) > 0.0) {
+		if (getConfig().getBoolean("bake.general.useVault", true) == true) {
 			if (!setupEconomy()) {
 				//Not hooked into Vault.
 				getLogger().warning(ChatColor.YELLOW + "Vault (or an Economy plugin) was not installed or initiated too late. This is not much of a problem, but money won't be awarded.");
@@ -186,14 +203,14 @@ public class Bake extends JavaPlugin {
 			//Using Vault would make no sense as no money would be sent.
 			useVault = false;
 		}
-		new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + " Over half of the servers using this plugin don't make use of it. Please delete this plugin if you are one of them. \n -Thanks, Geolykt");}}.runTask(this);
-
+		
 		StringParser = new StringUtils(this);
 		if (getConfig().getBoolean("bake.gbake.enable", false)) {
 			DataHandle = new GlobalBake(this,getConfig().getString("bake.gbake.update_server", "localhost"), getConfig().getString("bake.gbake.update_client", "localhost"), getConfig().getLong("bake.gbake.interval", 1000l), getConfig().getString("bake.chat.gBakeRefresh", "N/A"));
 		} else {
 			DataHandle = new LocalBake(this);
 		}
+		
 		if (!getConfig().getBoolean("bake.general.useLeaderboard", true)) {
 			useLeaderboard = false;
 		}
@@ -201,32 +218,55 @@ public class Bake extends JavaPlugin {
 		if (!getConfig().getBoolean("bake.general.noMeddle", false)) {
 		
 			// Config Convert Process
-			if (getConfig().getInt("bake.general.configVersion", -1) > 6) {
+			if (getConfig().getInt("bake.general.configVersion", -1) > 7) {
 				//Notify User
 				getLogger().log(Level.WARNING, ChatColor.YELLOW + "The config version is newer than it should be! The plugin will try to run normal, but it might break  the config file!");
 				//the code can't do anything here, pray that it will work anyway.
 			} else if (getConfig().getInt("bake.general.configVersion", -1) < 5) {
 				//Strictly incompatible version (due to the award system completely being reworked, would be too tedious to create an autopatcher.
 				getLogger().severe(ChatColor.DARK_RED + "The config version for bake is below the expected value of 5, this means it is stricly incompatible. Update the config manually!");
+			} else if (getConfig().getInt("bake.general.configVersion", -1) == 6) {
+				//1.7.0 -> 1.8.0 patches
+				//Init savedata.yml
+				//Creates savedata.yml, if not already existing
+				File savedataFile = new File(getDataFolder(), "savedata.yml");
+				if (!savedataFile.exists()) {
+					//savedata.yml does not exist
+					//-> create savedata.yml
+					saveResource("savedata.yml", false);
+				}
+				//Sets the configuration, if null, otherwise it leaves it be
+				if (savedataConfiguration == null) {
+					try {
+						savedataConfiguration = new YamlConfiguration();
+						savedataConfiguration.load(savedataFile);
+					} catch (IOException | InvalidConfigurationException e) {
+						getLogger().severe("[Bake] Error while reading save files. Please report this bug along with the stacktrace.");
+						e.printStackTrace();
+						return;
+					}
+				}
+				
+			
+				savedataConfiguration.set("bake.save.times", getConfig().getInt("bake.save.times", 0));
+				savedataConfiguration.set("bake.save.last", getConfig().getString("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH)));
+				savedataConfiguration.set("bake.save.recordtime", getConfig().getString("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH)));
+				savedataConfiguration.set("bake.save.today", 0);
+				savedataConfiguration.set("bake.save.record", getConfig().getInt("bake.save.record", 0));
+				savedataConfiguration.set("bake.save.all", DataHandle.getTotalContributed());
+				savedataConfiguration.set("bake.save.participants", getConfig().getInt("bake.save.participants", 0));
+				savedataConfiguration.set("bake.save.participantsToday", getConfig().getInt("bake.save.participantsToday", 0));
+				try {
+					savedataConfiguration.save(new File(getDataFolder(), "savedata.yml"));
+				} catch (IOException e) {
+					getLogger().severe("[Bake] An issue occured, Perhaps another thread is trying to access the file?");
+					e.printStackTrace();
+				}
+				getConfig().set("bake.general.configVersion", 7); //Patches applied
 			}
-			saveConfig();
 		}
-		
-		//Store values
-		if (getConfig().getBoolean("bake.general.cnfgStore", true)) {
-			readValues();
-			getConfig().addDefault("bake.save.times", 0);
-			getConfig().addDefault("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH));
-			getConfig().addDefault("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH));
-			getConfig().addDefault("bake.save.record", 0);
-			getConfig().addDefault("bake.save.today", 0);
-			getConfig().addDefault("bake.save.participants", 0);
-			getConfig().addDefault("bake.save.participantsToday", 0);
-			
-			
-			getConfig().options().copyDefaults(true);
-			saveConfig();
-		}
+		//Load values from the saveData
+		readValues();
 		
 		StringParser.cacheStrings();
 
@@ -246,26 +286,59 @@ public class Bake extends JavaPlugin {
 		} catch (IOException | InvalidConfigurationException e) {
 			e.printStackTrace();
 		}
-		DataHandle.newQuest();
+		Instant questBegann = Instant.parse(savedataConfiguration.getString("bake.qsave.began", "1970-01-01T00:00:00Z"));
+		
+		if (questBegann.equals(Instant.EPOCH)) {
+			DataHandle.newQuest();//Program never ran before
+		} else if (questBegann.plusSeconds(DataHandle.QuestCfg.getLong("questConfig.timeOutQuestsAfter", 0)).isBefore(Instant.now())) {
+			DataHandle.newQuest();//Quest timed out.
+		} else {
+			DataHandle.newQuest(savedataConfiguration.getString("bake.qsave.name", "N/A"));
+			DataHandle.activeQuest.setRequirement_left(savedataConfiguration.getInt("bake.qsave.progress", 0));
+		}
+
+		if (DataHandle.getTotalContributed() == 0) {
+			new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + " Over half of the servers using this plugin don't make use of it. Please delete this plugin if you are one of them. \n -Thanks, Geolykt");}}.runTask(this);
+		}
 	}
 	
 	/**
 	 * This function "reads" the config file and gets all useful values from it and stores them in their respective variables.
 	 * 
 	 * @author Geolykt
-	 * @since 1.5.0
+	 * @since 1.5.0, last revision: 1.8.0
 	 * 
 	 */
 	private void readValues() {
-		DataHandle.setLastCompletion(Instant.parse(getConfig().getString("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH))));
-		if (!DataHandle.getLastCompletion().equals(Instant.EPOCH)) {
-			DataHandle.setProjectsFinishedToday((short) getConfig().getInt("bake.save.today", 0));
+
+		//Creates savedata.yml, if not already existing
+		File savedataFile = new File(getDataFolder(), "savedata.yml");
+		if (!savedataFile.exists()) {
+			//savedata.yml does not exist
+			//-> create savedata.yml
+			saveResource("savedata.yml", false);
 		}
-		DataHandle.setTimes((short) getConfig().getInt("bake.save.times", 0));
-		DataHandle.setBestAmount((short) getConfig().getInt("bake.save.record", 0));
-		DataHandle.setParticipantCount((byte) getConfig().getInt("bake.save.participants", 0));
-		DataHandle.setParticipantsToday((byte) getConfig().getInt("bake.save.participantsToday", 0));
-		DataHandle.setRecord(Instant.parse(getConfig().getString("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH))));
+		//Sets the configuration, if null, otherwise it leaves it be
+		if (savedataConfiguration == null) {
+			try {
+				savedataConfiguration = new YamlConfiguration();
+				savedataConfiguration.load(savedataFile);
+			} catch (IOException | InvalidConfigurationException e) {
+				getLogger().severe("[Bake] Error while reading save files. Please report this bug along with the stacktrace.");
+				e.printStackTrace();
+				return;
+			}
+		}
+		
+		DataHandle.setLastCompletion(Instant.parse(savedataConfiguration.getString("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH))));
+		if (!DataHandle.getLastCompletion().equals(Instant.EPOCH)) {
+			DataHandle.setProjectsFinishedToday((short) savedataConfiguration.getInt("bake.save.today", 0));
+		}
+		DataHandle.setTimes((short) savedataConfiguration.getInt("bake.save.times", 0));
+		DataHandle.setBestAmount((short) savedataConfiguration.getInt("bake.save.record", 0));
+		DataHandle.setParticipantCount((byte) savedataConfiguration.getInt("bake.save.participants", 0));
+		DataHandle.setParticipantsToday((byte) savedataConfiguration.getInt("bake.save.participantsToday", 0));
+		DataHandle.setRecord(Instant.parse(savedataConfiguration.getString("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH))));
 	}
 
 	@Override
@@ -277,23 +350,35 @@ public class Bake extends JavaPlugin {
 
 	/**
 	 * This function writes specific values in the config file (<u>if permitted</u>) for storage and later use.
-	 * 
+	 * <br> Note: this assumes readValues() has already been performed.
 	 * @author Geolykt
-	 * @since 1.5.0
-	 * 
+	 * @since 1.5.0, last revision: 1.8.0
+	 * @throws IllegalStateException in case Bake.savedataConfiguration is null
 	 */
 	private void saveValues() {
-		if (getConfig().getBoolean("bake.general.cnfgStore", true)) {
-			getConfig().set("bake.save.times", DataHandle.getOverallCompletionAmount());
-			getConfig().set("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(DataHandle.getLastCompletion()));
-			getConfig().set("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(DataHandle.getRecordDate()));
-			getConfig().set("bake.save.today", DataHandle.getProjectsFinishedToday());
-			getConfig().set("bake.save.record", DataHandle.getRecordAmount());
-			getConfig().set("bake.save.all", DataHandle.getTotalContributed());
-			getConfig().set("bake.save.participants", DataHandle.getParticipantAmount());
-			getConfig().set("bake.save.participantsToday", DataHandle.getParticipantAmountToday());
-			saveConfig();
+		if (savedataConfiguration == null) {
+			throw new IllegalStateException("The savedata Configuration variable is null");
 		}
+		savedataConfiguration.set("bake.save.times", DataHandle.getOverallCompletionAmount());
+		savedataConfiguration.set("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(DataHandle.getLastCompletion()));
+		savedataConfiguration.set("bake.save.recordtime", DateTimeFormatter.ISO_INSTANT.format(DataHandle.getRecordDate()));
+		savedataConfiguration.set("bake.save.today", DataHandle.getProjectsFinishedToday());
+		savedataConfiguration.set("bake.save.record", DataHandle.getRecordAmount());
+		savedataConfiguration.set("bake.save.all", DataHandle.getTotalContributed());
+		savedataConfiguration.set("bake.save.participants", DataHandle.getParticipantAmount());
+		savedataConfiguration.set("bake.save.participantsToday", DataHandle.getParticipantAmountToday());
+
+		savedataConfiguration.set("bake.qsave.progress", DataHandle.activeQuest.getRequirement_left());
+		savedataConfiguration.set("bake.qsave.name", DataHandle.activeQuest.getName());
+		savedataConfiguration.set("bake.qsave.began", DataHandle.activeQuest.getQuestBeginningInstant().toString());
+
+		try {
+			savedataConfiguration.save(new File(getDataFolder(), "savedata.yml"));
+		} catch (IOException e) {
+			getLogger().severe("[Bake] An issue occured, Perhaps another thread is trying to access the file?");
+			e.printStackTrace();
+		}
+		
 		lbHandle.save();
 	}
 
@@ -332,7 +417,7 @@ public class Bake extends JavaPlugin {
 			} else if (sender instanceof Player) {
 				DataHandle.onBakeCommand((Player)sender);
 			} else {
-				sender.sendMessage("Following update 1.6.0, you must be a player to call that command");
+				DataHandle.onBakeCommandByNonPlayer(sender);
 			}
 			return true;
 			

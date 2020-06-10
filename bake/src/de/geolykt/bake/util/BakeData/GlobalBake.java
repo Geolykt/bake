@@ -21,8 +21,9 @@ import de.geolykt.bake.Bake;
  * @author Geolykt
  * @since 1.6.0
  * 
- *
+ *@deprecated This bakeData implementation is not used.
  */
+@Deprecated
 public class GlobalBake extends BakeData {
 	
 	/**
@@ -86,6 +87,7 @@ public class GlobalBake extends BakeData {
 	@Override
 	public void onBakeCommand(Player player) {
 		String s = this.bakeInstance.StringParser.BakeCommandString;
+		s = bakeInstance.StringParser.getFormattedTooltip(activeQuest.getRawTooltip(), player.getDisplayName());
 		s = this.bakeInstance.StringParser.replaceFrequent(s, player.getDisplayName());
 		player.sendMessage(s);
 	}

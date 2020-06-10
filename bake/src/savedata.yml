@@ -1,0 +1,14 @@
+bake:
+  qsave:
+    progress: 0
+    name: 'N/A'
+    began: '1970-01-01T00:00:00Z'
+    location: 'quests.yml'
+  save:
+    times: 0
+    last: '1970-01-01T00:00:00Z'
+    recordtime: '1970-01-01T00:00:00Z'
+    record: 0
+    today: 0
+    participants: 0
+    participantsToday: 0
