@@ -106,7 +106,7 @@ import net.milkbowl.vault.economy.Economy;
  * 1.8.0: Added quest expire date<br>
  * 1.8.0: Quests now no longer reset after restart<br>
  * 1.8.0: Fixed a bug which would occur when multiple players contributed<br>
- * 1.8.0: TODO Fixed a bug in which contributors who donated less get more rewards<br>
+ * 1.8.0: Fixed a bug in which contributors who donated less get more rewards<br>
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>

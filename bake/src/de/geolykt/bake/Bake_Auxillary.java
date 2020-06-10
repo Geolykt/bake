@@ -234,7 +234,7 @@ public class Bake_Auxillary {
 					//Get whether the player is online
 					if (Bukkit.getPlayer(playerID).isOnline()) {
 						//Get how much the player is eligible on getting & send the data to the Auxiliary
-						Bake_Auxillary.givePlayerItem(Bukkit.getPlayer(playerID), is[i], (int) Math.round(table.pool_amount[i]*(threshold/players.getOrDefault(playerID,0))));
+						Bake_Auxillary.givePlayerItem(Bukkit.getPlayer(playerID), is[i], (int) Math.round(table.pool_amount[i]/(threshold/players.getOrDefault(playerID,0))));
 					}
 				}
 			}
