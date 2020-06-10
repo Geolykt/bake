@@ -203,8 +203,7 @@ public class Bake extends JavaPlugin {
 			//Using Vault would make no sense as no money would be sent.
 			useVault = false;
 		}
-		new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + " Over half of the servers using this plugin don't make use of it. Please delete this plugin if you are one of them. \n -Thanks, Geolykt");}}.runTask(this);
-
+		
 		StringParser = new StringUtils(this);
 		if (getConfig().getBoolean("bake.gbake.enable", false)) {
 			DataHandle = new GlobalBake(this,getConfig().getString("bake.gbake.update_server", "localhost"), getConfig().getString("bake.gbake.update_client", "localhost"), getConfig().getLong("bake.gbake.interval", 1000l), getConfig().getString("bake.chat.gBakeRefresh", "N/A"));
@@ -261,6 +260,10 @@ public class Bake extends JavaPlugin {
 		} else {
 			DataHandle.newQuest(savedataConfiguration.getString("bake.qsave.name", "N/A"));
 			DataHandle.activeQuest.setRequirement_left(savedataConfiguration.getInt("bake.qsave.progress", 0));
+		}
+
+		if (DataHandle.getTotalContributed() == 0) {
+			new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + " Over half of the servers using this plugin don't make use of it. Please delete this plugin if you are one of them. \n -Thanks, Geolykt");}}.runTask(this);
 		}
 	}
 	
