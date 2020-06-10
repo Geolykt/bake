@@ -225,16 +225,17 @@ public class Bake_Auxillary {
 			is [i] = new ItemStack(table.items[i]);
 			is [i].setItemMeta(table.itemMeta[i]);
 		}
+		//TODO this may be made more efficient, perhaps iterating over the onlinePlayers first? Nonetheless, the efficiency should be debated and what the most efficent approach is
+		
 		//Loop through items
 		for (int i = 0; i < table.items.length; i++) {
 			//Chance based things
 			if (Math.random()<table.baseChances[i]) {
-				//cycle through players
-				for (UUID playerID : players.keySet()) {
-					//Get whether the player is online
-					if (Bukkit.getPlayer(playerID).isOnline()) {
+				//cycle through online players
+				for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+					if (players.containsKey(onlinePlayer.getUniqueId())) {
 						//Get how much the player is eligible on getting & send the data to the Auxiliary
-						Bake_Auxillary.givePlayerItem(Bukkit.getPlayer(playerID), is[i], (int) Math.round(table.pool_amount[i]/(threshold/players.getOrDefault(playerID,0))));
+						Bake_Auxillary.givePlayerItem(Bukkit.getPlayer(onlinePlayer.getUniqueId()), is[i], (int) Math.round(table.pool_amount[i]/(threshold/players.getOrDefault(onlinePlayer.getUniqueId(),0))));
 					}
 				}
 			}
