@@ -1,5 +1,6 @@
 package de.geolykt.bake.util.quest;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +38,8 @@ public class Quest {
 	
 	private YamlConfiguration config;
 	
+	private Instant begun;
+
 	/**
 	 * Loads a quest from the specified file
 	 * @param questCfg The file from which the quest should be loaded.
@@ -60,8 +63,23 @@ public class Quest {
 		for (String s : config.getStringList("quests." + name + ".material")) {
 			matches.put(Material.getMaterial(s.toUpperCase(Locale.ROOT).split("=")[0]), Double.valueOf(s.split("=")[1]));
 		}
+		
+		begun = Instant.now();
 	}
 
+	/**
+	 * Loads a quest from the specified file
+	 * @param questCfg The file from which the quest should be loaded.
+	 * @param questNameID The unique identifier for the plugin
+	 * @param began The specified Instant the quest should have started, useful when storing and saving this quest externally.
+	 * @throws NoSuchElementException, if the questType is invalid.
+	 * @since 1.8.0
+	 */
+	public Quest(YamlConfiguration questCfg, String questNameID, Instant began) {
+		this(questCfg,questNameID);
+		begun = began;
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -118,5 +136,13 @@ public class Quest {
 	 */
 	public List<String> getSuccessors() {
 		return config.getStringList("quests." + name + ".childNode");
+	}
+	
+	/**
+	 * Returns when the Quest began.
+	 * @return An Instant which should be roughly the equilavent when the quest started.
+	 */
+	public Instant getQuestBeginningInstant() {
+		return begun;
 	}
 }

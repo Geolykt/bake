@@ -401,8 +401,31 @@ public abstract class BakeData {
 				quests = QuestCfg.getStringList("quests.names");
 			}
 		}
-		bakeInstance.getLogger().info("[BAKE] Choosing new quest. Quests available: " + QuestCfg.get("quests.names", "NO").toString());
+		bakeInstance.getLogger().info("[BAKE] Choosing new quest. Quests available: " + quests.toString());
 		int questID = (int) Math.round(Math.random()*(quests.size()-1));
 		activeQuest = new Quest(QuestCfg, quests.get(questID));
+	}
+
+	/**
+	 * Creates a new quest with the specified name. If the quest was not found, it defaults to the default newQuest() without arguments.
+	 * @param name the name of the quest
+	 * @since 1.8.0
+	 */
+	public void newQuest(String name) {
+		//Prevent NullPointerExcpetions
+		if (name == null) {
+			bakeInstance.getLogger().info("[Bake] Null name for new generated quest. Falling back to default quest selection.");
+			newQuest();
+			return;
+		}
+		
+		if (QuestCfg.getString("quests." + name + ".type", "N/A").equals("N/A")) {
+			bakeInstance.getLogger().info("[Bake] Invalid name (" + name + ") for new generated quest. Falling back to default quest selection.");
+			//Invalid quest name
+			newQuest();
+		} else {
+			//Valid quest name
+			activeQuest = new Quest(QuestCfg, name);
+		}
 	}
 }

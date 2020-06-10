@@ -1,3 +1,6 @@
+questConfig:
+  #the timeout of a quest specified in seconds, the default value is set to a day. After the timeout has been reached a new quest will be generated.
+  timeOutQuestsAfter: 86400
 quests:
   #these are the quests that are used first, each having the same chance of getting rolled
   names:

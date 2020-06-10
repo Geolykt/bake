@@ -93,6 +93,7 @@
     			<include>config.yml</include>
     			<include>plugin.yml</include>
     			<include>quests.yml</include>
+    			<include>savedata.yml</include>
     		</includes>
     	</resource>
     </resources>
