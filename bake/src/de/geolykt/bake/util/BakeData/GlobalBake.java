@@ -87,6 +87,7 @@ public class GlobalBake extends BakeData {
 	@Override
 	public void onBakeCommand(Player player) {
 		String s = this.bakeInstance.StringParser.BakeCommandString;
+		s = bakeInstance.StringParser.getFormattedTooltip(activeQuest.getRawTooltip(), player.getDisplayName());
 		s = this.bakeInstance.StringParser.replaceFrequent(s, player.getDisplayName());
 		player.sendMessage(s);
 	}

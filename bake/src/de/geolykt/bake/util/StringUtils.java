@@ -173,4 +173,18 @@ public class StringUtils {
 		s = s.replaceAll("%LEFT%", String.valueOf(bakeInstance.DataHandle.getRemaining()));
 		return s;
 	}
+	
+	/**
+	 * Formats a Tooltip - usually used these in Quests - and returns that value.<br>
+	 * This method should be overridden if a specific format is wanted.
+	 * @param input The input base string
+	 * @param player What %PLAYER% corresponds to, <i>can</i> be an empty string
+	 * @return A formatted tooltip
+	 * @since 1.8.0
+	 */
+	public String getFormattedTooltip(String input, String player) {
+		input = replaceString(input);
+		input = replaceFrequent(input, player);
+		return input;
+	}
 }

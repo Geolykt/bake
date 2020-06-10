@@ -40,6 +40,8 @@ public class Quest {
 	
 	private Instant begun;
 
+	protected String tooltip_Raw;
+	
 	/**
 	 * Loads a quest from the specified file
 	 * @param questCfg The file from which the quest should be loaded.
@@ -63,6 +65,9 @@ public class Quest {
 		for (String s : config.getStringList("quests." + name + ".material")) {
 			matches.put(Material.getMaterial(s.toUpperCase(Locale.ROOT).split("=")[0]), Double.valueOf(s.split("=")[1]));
 		}
+		
+		//set tooltip
+		tooltip_Raw = config.getString("quests." + name + ".tooltip", "");
 		
 		begun = Instant.now();
 	}
@@ -136,6 +141,15 @@ public class Quest {
 	 */
 	public List<String> getSuccessors() {
 		return config.getStringList("quests." + name + ".childNode");
+	}
+	
+	/**
+	 * Returns the raw unformatted tooltip string.
+	 * @since 1.8.0
+	 * @return The unformated string that is defined in the quests.yml
+	 */
+	public String getRawTooltip() {
+		return tooltip_Raw;
 	}
 	
 	/**
