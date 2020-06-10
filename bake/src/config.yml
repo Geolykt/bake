@@ -40,5 +40,4 @@ bake:
       'mid': "%d.: %-31s :§4 %s"
       'post': "§b==============================="
       'unavail': "§4Bake leaderboards are not supported right now right here. Try again later."
-    gBakeRefresh: "§4[BAKE] §6 Other servers have contributed %INTPROG%!"
     welcomeBack: "§6[BAKE] During your absence the Bake project has been finished! As a contributor, you get some rewards!"

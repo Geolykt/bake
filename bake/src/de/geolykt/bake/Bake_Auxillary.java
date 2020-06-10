@@ -240,12 +240,8 @@ public class Bake_Auxillary {
 			}
 		}
 		//Remove online players from the list, offline players should remain.
-		for (UUID playerID : players.keySet()) {
-			//Get whether the player is online
-			if (Bukkit.getPlayer(playerID).isOnline()) {
-				//Remove the player from the map
-				players.remove(playerID);
-			}
+		for (Player p : Bukkit.getOnlinePlayers()) {
+			players.remove(p.getUniqueId());
 		}
 		return players;
 	}
