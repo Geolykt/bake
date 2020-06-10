@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.geolykt</groupId>
   <artifactId>bake</artifactId>
-  <version>1.8.0-SNAPSHOT</version>
+  <version>1.8.0-RELEASE</version>
   <name>Bake</name>
   
   <repositories>

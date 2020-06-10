@@ -1,6 +1,6 @@
 name: bake
 main: de.geolykt.bake.Bake
-version: 1.8.0-SNAPSHOT
+version: 1.8.0-RELEASE
 author: Geolykt
 api-version: 1.15
 softdepend: [Vault] #Vault for money stuff
