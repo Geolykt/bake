@@ -215,7 +215,7 @@ public abstract class BakeData {
 			throw new IllegalArgumentException("Invalid command sender. The command sender is a player while the method does not expect it to be a player.");
 		}
 		String s = this.bakeInstance.StringParser.BakeCommandString;
-		s = bakeInstance.StringParser.getFormattedTooltip(activeQuest.getRawTooltip(), "");
+		s = s.replaceAll("%TOOLTIP%", bakeInstance.StringParser.getFormattedTooltip(activeQuest.getRawTooltip(), ""));
 		s = this.bakeInstance.StringParser.replaceFrequent(s, "");
 		sender.sendMessage(s);
 	}

@@ -100,13 +100,15 @@ import net.milkbowl.vault.economy.Economy;
  * 1.7.0: Added placeholder "%LEFT%" displaying what's remaining<br>
  * </li><li>
  * 1.8.0: Implemented Quest Trees<br>
- * 1.8.0: TODO Quests now can give money again<br>
  * 1.8.0: Added Quest tooltip<br>
  * 1.8.0: Reworked default configurations<br>
  * 1.8.0: Added quest expire date<br>
  * 1.8.0: Quests now no longer reset after restart<br>
  * 1.8.0: Fixed a bug which would occur when multiple players contributed<br>
  * 1.8.0: Fixed a bug in which contributors who donated less get more rewards<br>
+ * </li><li>
+ * 1.8.1: Fixed /bake string parsing<br>
+ * 1.8.1: TODO Quests now can give money again<br>
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>

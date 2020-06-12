@@ -48,7 +48,7 @@ quests:
     childNode: 
       - endNode
     #tooltip
-    tooltip: '§3Some rather unknown wizards have entered the kingdom and have asked you to give them some bones so they can study on them. §r§1 They want a total of §2%INTMAX%§1 and got §2%INTPROG%§1, so §2%PERCENT%§1% done.§r §4Keep it up!'
+    tooltip: '§3Some rather unknown wizards have entered the kingdom and have asked you to give them some bones so they can study on them.'
     #vault money that should be added to contributors when the project finishes
     #this is not pooled
     addMoney: 100
@@ -102,5 +102,5 @@ quests:
     #loop to the start
     childNode: 
       - startNode
-    tooltip: 'Nature should not be destroyed some said, perhaps you can help preserve the nature? Gather saplings. §r§1 The goal is §2%INTMAX%§1 and we reached §2%INTPROG%§, so §2%PERCENT%§1% done.§r §4Keep it up!'
+    tooltip: 'Nature should not be destroyed some said, perhaps you can help preserve the nature? Gather saplings.'
     addMoney: 100

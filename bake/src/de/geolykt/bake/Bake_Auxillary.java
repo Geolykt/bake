@@ -24,10 +24,10 @@ import de.geolykt.bake.util.quest.BakeLootTable;
 public class Bake_Auxillary {
 
 	/**
-	 * The version of the plugin in the MAJOR.MINOR.PATCH.ANNOTATION format.
+	 * The version of the plugin in the MAJOR.MINOR.PATCH-TYPE format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.8.0";
+	public static final String PLUGIN_VERSION = "1.8.1-SNAPSHOT";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
@@ -35,14 +35,15 @@ public class Bake_Auxillary {
 	 * 0x1=1.5.1
 	 * 0x2=1.5.2
 	 * 0x3=1.6.0-pre Releases
-	 * 0x4=1.6.0 (unused?)
+	 * 0x4=1.6.0 (while designated, it remains unused due to a bug)
 	 * 0x5=1.6.1
 	 * 0x6=1.6.2
 	 * 0x7=1.7.0
 	 * 0x8=1.8.0
+	 * 0x9=1.8.1
 	 * @since 1.5.1
 	 */
-	public static final byte PLUGIN_VERSION_ID = 0x8;
+	public static final byte PLUGIN_VERSION_ID = 0x9;
 	
 	/**
 	 * returns the length of the longest String in an array.<br>
