@@ -1,6 +1,7 @@
 package de.geolykt.bake;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -215,7 +216,7 @@ public class Bake_Auxillary {
 	 * @param players A map containing all the players and their contribution.
 	 * @param table The BakeLootTable that should be used.
 	 * @param threshold Required to calculate the player's rewards.
-	 * @return A map with the player's UUIDs mapped to their contribution which rewards delivery was failed
+	 * @return A map with the player's UUIDs mapped to their contribution of whom the delivery of rewards failed.
 	 * @since 1.7.0
 	 * @author Geolykt
 	 */
@@ -226,7 +227,7 @@ public class Bake_Auxillary {
 			is [i] = new ItemStack(table.items[i]);
 			is [i].setItemMeta(table.itemMeta[i]);
 		}
-		//TODO this may be made more efficient, perhaps iterating over the onlinePlayers first? Nonetheless, the efficiency should be debated and what the most efficent approach is
+		//TODO this may be made more efficient, perhaps iterating over the onlinePlayers first? Nonetheless, the efficiency should be debated and what the most efficient approach is
 		
 		//Loop through items
 		for (int i = 0; i < table.items.length; i++) {
@@ -249,6 +250,27 @@ public class Bake_Auxillary {
 	}
 
 	/**
+	 * Rewards the players from the given BakeLootTable. <br>
+	 * Uses the default item reward method for 1.7 onwards.
+	 * @param players A map containing all the players and their contribution.
+	 * @param table The BakeLootTable that should be used.
+	 * @param threshold Required to calculate the player's rewards.
+	 * @param name The quest name, used for the key of the values of the map.
+	 * @return A map with the player's UUIDs mapped to their contribution of whom the delivery of rewards failed.
+	 * @since 1.8.1
+	 * @author Geolykt
+	 */
+	public static Map<UUID,Entry<String, Integer>> rewardPlayers(Map<UUID,Integer> players, BakeLootTable table, int threshold, String name) {
+		players = rewardPlayers(players, table, threshold);
+		Map<UUID, Entry<String, Integer>> result = new HashMap<UUID, Map.Entry<String,Integer>>();
+		
+		for (Entry<UUID, Integer> e: players.entrySet()) {
+			result.put(e.getKey(), new java.util.AbstractMap.SimpleEntry<String, Integer>(name, e.getValue()));
+		}
+		return result;
+	}
+	
+	/**
 	 * Rewards a player with the given table. Does not check whether the player is online though
 	 * @param player The target player
 	 * @param table The BakeLootTable
@@ -268,7 +290,7 @@ public class Bake_Auxillary {
 			//Chance based things
 			if (Math.random()<table.baseChances[i]) {
 				//Get how much the player is eligible on getting & send the data to the Auxiliary
-				Bake_Auxillary.givePlayerItem(player, is[i], (int) Math.round(table.pool_amount[i]*(threshold/contrib)));
+				Bake_Auxillary.givePlayerItem(player, is[i], (int) Math.round(table.pool_amount[i]/(threshold/contrib)));
 			}
 		}
 	}

@@ -39,6 +39,8 @@ public class Quest {
 	private YamlConfiguration config;
 	
 	private Instant begun;
+	
+	private double eco_amount;
 
 	protected String tooltip_Raw;
 	
@@ -59,6 +61,7 @@ public class Quest {
 			throw new NoSuchElementException("The current build of bake does not support the specified quest type!");
 		}
 		setRequirement_left(config.getInt("quests." + name + ".threshold", 2147483647));
+		eco_amount = config.getDouble("quests." + name + ".addMoney", 0.0);
 		
 		//Set the Matches
 		matches = new HashMap<Material, Double>();
@@ -67,7 +70,7 @@ public class Quest {
 		}
 		
 		//set tooltip
-		tooltip_Raw = config.getString("quests." + name + ".tooltip", "");
+		tooltip_Raw = config.getString("quests." + name + ".tooltip", "quests." + name + ".tooltip is unset or contains an invalid argument.");
 		
 		begun = Instant.now();
 	}
@@ -146,7 +149,7 @@ public class Quest {
 	/**
 	 * Returns the raw unformatted tooltip string.
 	 * @since 1.8.0
-	 * @return The unformated string that is defined in the quests.yml
+	 * @return The unformatted string that is defined in the quests.yml
 	 */
 	public String getRawTooltip() {
 		return tooltip_Raw;
@@ -155,8 +158,19 @@ public class Quest {
 	/**
 	 * Returns when the Quest began.
 	 * @return An Instant which should be roughly the equilavent when the quest started.
+	 * @since 1.8.1
 	 */
 	public Instant getQuestBeginningInstant() {
 		return begun;
+	}
+
+	/**
+	 * Returns the amount of money a player with a given amount on contribution should be rewarded.
+	 * @param contributionAmount The amount that was contributed by the player that should be rewarded, currently doesn't do anything but will do once money is also pooled
+	 * @return The amount of money said player should be rewarded
+	 * @since 1.8.1
+	 */
+	public double getEcoRewardAmount(int contributionAmount) {
+		return eco_amount;
 	}
 }

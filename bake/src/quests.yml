@@ -25,9 +25,9 @@ quests:
         - WITHER_ROSE
         - NETHER_STAR
       WITHER_SKELETON_SKULL:
-        'baseChance': 1
-        'pool': 16
-        'lore': §dFrom the wise wizards!
+        'baseChance': 1.0 #this is a double that can range from 0 (never rolled) to 1 (always rolled).
+        'pool': 16 #size of the pool. The higher, the higher the rewards for players
+        'lore': §dFrom the wise wizards! #the lore of the item
         'display_name': ''
         'enchantment': ''
       WITHER_ROSE:
@@ -50,8 +50,9 @@ quests:
     #tooltip
     tooltip: '§3Some rather unknown wizards have entered the kingdom and have asked you to give them some bones so they can study on them.'
     #vault money that should be added to contributors when the project finishes
-    #this is not pooled
-    addMoney: 100
+    #this is not yet pooled and therefore a player gets the money regardless of how much they give.
+    #this is a double, so don't forget the dot
+    addMoney: 100.0
   endNode:
     type: contribution
     material:
@@ -94,13 +95,13 @@ quests:
         'display_name': ''
         'enchantment': ''
       PAPER:
-        'baseChance': 1.0 #don't forget the decimal point, even if it wouldn't really be needed for your perspective. It's needed :)
+        'baseChance': 1.0
         'pool': 100
-        'lore': "Remind the admins to remove this item :) | Also, don't cut yourself with this piece of paper."
+        'lore': "Remind the administrators to remove this item :) | Also, don't cut yourself with this piece of paper."
         'display_name': 'Reminder from the plugin developer'
         'enchantment': 'UNBREAKING@255|SHARPNESS@255'
     #loop to the start
     childNode: 
       - startNode
     tooltip: 'Nature should not be destroyed some said, perhaps you can help preserve the nature? Gather saplings.'
-    addMoney: 100
+    addMoney: 100.0

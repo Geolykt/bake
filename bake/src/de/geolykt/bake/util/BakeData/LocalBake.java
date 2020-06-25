@@ -103,7 +103,7 @@ public class LocalBake extends BakeData {
 	
 	@Override
 	public void onFinish() {
-		this.notRewarded.putAll(Bake_Auxillary.rewardPlayers(this.projectReminderList, activeQuest.getLoot(Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])), activeQuest.getThreshold()));
+		this.notRewarded.putAll(Bake_Auxillary.rewardPlayers(projectReminderList, activeQuest.getLoot(bakeInstance.API_LEVEL), activeQuest.getThreshold(), activeQuest.getName()));
 		newQuest();
 	}
 	
