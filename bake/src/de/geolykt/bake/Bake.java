@@ -110,7 +110,7 @@ import net.milkbowl.vault.economy.Economy;
  * 1.8.1: Fixed /bake string parsing<br>
  * 1.8.1: Players will now be rewarded with the correct loottable when they rejoin<br>
  * 1.8.1: Players that rejoin will now be rewarded the correct amount<br>
- * 1.8.1: TODO Quests now can give money again<br>
+ * 1.8.1: Quests now can give money again<br>
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>

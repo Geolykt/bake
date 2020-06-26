@@ -23,6 +23,7 @@ public class BakeLootTable {
 	public Integer pool_amount [];
 	public Float baseChances [];
 	public ItemMeta itemMeta [];
+	public double money;
 	
 	/**
 	 * Loads the BakeLootTable from the given path of the given config file
@@ -38,6 +39,7 @@ public class BakeLootTable {
 		pool_amount = new Integer[length];
 		itemMeta = new ItemMeta[length];
 		baseChances = new Float[length];
+		money = config.getDouble(path + ".items", 0.0);
 		
 		List<String> itemList = config.getStringList(path + ".items"); 
 		

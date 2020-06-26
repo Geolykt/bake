@@ -251,7 +251,9 @@ public class Bake_Auxillary {
 
 	/**
 	 * Rewards the players from the given BakeLootTable. <br>
-	 * Uses the default item reward method for 1.7 onwards.
+	 * Uses the default item reward method for 1.7 onwards.<br>
+	 * DOES NOT REWARD MONEY
+	 * 
 	 * @param players A map containing all the players and their contribution.
 	 * @param table The BakeLootTable that should be used.
 	 * @param threshold Required to calculate the player's rewards.
@@ -271,7 +273,9 @@ public class Bake_Auxillary {
 	}
 	
 	/**
-	 * Rewards a player with the given table. Does not check whether the player is online though
+	 * Rewards a player with the given table. Does not check whether the player is online though<br>
+	 * DOES NOT REWARD MONEY
+	 * 
 	 * @param player The target player
 	 * @param table The BakeLootTable
 	 * @param threshold The threshold of the reason. Used to calculate how much the player is eligible from getting

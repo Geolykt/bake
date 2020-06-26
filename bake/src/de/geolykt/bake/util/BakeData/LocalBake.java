@@ -2,6 +2,8 @@ package de.geolykt.bake.util.BakeData;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -103,7 +105,13 @@ public class LocalBake extends BakeData {
 	
 	@Override
 	public void onFinish() {
-		this.notRewarded.putAll(Bake_Auxillary.rewardPlayers(projectReminderList, activeQuest.getLoot(bakeInstance.API_LEVEL), activeQuest.getThreshold(), activeQuest.getName()));
+		for (Entry<UUID, Entry<String, Integer>> entry : notRewarded.entrySet()) {
+			Player p = Bukkit.getPlayer(entry.getKey());
+			if (p.isOnline()) {
+				bakeInstance.givePlayerMoney(p,activeQuest.getEcoRewardAmount(entry.getValue().getValue()));
+			}
+		}
+		notRewarded.putAll(Bake_Auxillary.rewardPlayers(projectReminderList, activeQuest.getLoot(bakeInstance.API_LEVEL), activeQuest.getThreshold(), activeQuest.getName()));
 		newQuest();
 	}
 	
