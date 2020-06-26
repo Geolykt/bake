@@ -28,10 +28,11 @@ public class Bake_Auxillary {
 	 * The version of the plugin in the MAJOR.MINOR.PATCH-TYPE format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.8.1-SNAPSHOT";
+	public static final String PLUGIN_VERSION = "1.9.0-SNAPSHOT";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
+	 * <pre>
 	 * 0x0=unused
 	 * 0x1=1.5.1
 	 * 0x2=1.5.2
@@ -42,32 +43,14 @@ public class Bake_Auxillary {
 	 * 0x7=1.7.0
 	 * 0x8=1.8.0
 	 * 0x9=1.8.1
+	 * 0xa=1.9.0</pre>
 	 * @since 1.5.1
 	 */
-	public static final byte PLUGIN_VERSION_ID = 0x9;
+	public static final byte PLUGIN_VERSION_ID = 0xa;
 	
 	/**
-	 * returns the length of the longest String in an array.<br>
-	 * <b> DO NOT USE</b><br>
-	 * TODO Remove this
-	 * 
-	 * @param s Array of strings to be looked for
-	 * @return The length of the longest String in the array
-	 * @since 1.5.0
-	 * @deprecated Will be removed in 1.9.0 as it is not used and its implementation is considered useless.
-	 */
-	public static int getLongest (String [] s) {
-		int i = 0;
-		for (String string : s) {
-			if (string.length() > i) {
-				i = string.length();
-			}
-		}
-		return i;
-	}
-
-	/**
 	 * A library function to get if a player can afford to lose <b>count</b> items of Material <b>material</b>.
+	 * 
 	 * @param player The player that looses the items
 	 * @param material The sort of item to remove
 	 * @param count The amount of items to remove
@@ -95,7 +78,8 @@ public class Bake_Auxillary {
 	
 	/**
 	 * A library function to remove specific items at a specific count.</br><b>
-	 * Does not check whether the player can afford to lose them!</B>
+	 * Does not check whether the player can afford to lose them!</b>
+	 * 
 	 * @param player The player that looses the items
 	 * @param item The sort of item to remove
 	 * @param count The amount of items to remove
@@ -128,6 +112,7 @@ public class Bake_Auxillary {
 	
 	/**
 	 * Returns how many items of a given kind a player has in its inventory.
+	 * 
 	 * @param player The player whose inventory should be checked
 	 * @param item The Material to match against
 	 * @return The amount of items that match the Material the player has in its inventory.
@@ -149,6 +134,7 @@ public class Bake_Auxillary {
 
 	/**
 	 * Removes every itemstack in a player's inventory that matches the Material item and returns the amount that was removed.
+	 * 
 	 * @param player The player whose inventory should be checked
 	 * @param item The Material to match against
 	 * @return The amount of items that were removed.
@@ -170,12 +156,7 @@ public class Bake_Auxillary {
 	}
 	
 	/**
-	 * 
-	 * @param <K>
-	 * @param <V>
-	 * @param map
 	 * @author https://stackoverflow.com/a/2581754/10466349
-	 * @return
 	 * @since 1.6.0-pre3
 	 */
     public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
@@ -192,11 +173,11 @@ public class Bake_Auxillary {
     
     /**
      * Gives the player the given Items.
+     * 
      * @param p The player receiving the Item
      * @param base The base ItemStack, the "amount" variable will be overridden and is thus irrelevant.
      * @param amount the amount of times the player should be rewarded the item specified in the base.
      * @since 1.7.0
-     * @author Geolykt
      */
     public static void givePlayerItem (Player p, ItemStack base, Integer amount) {
     	double numStacks = amount/base.getMaxStackSize() - 1;
@@ -213,12 +194,12 @@ public class Bake_Auxillary {
 	/**
 	 * Rewards the players from the given BakeLootTable. <br>
 	 * Default item reward method for 1.7 onwards.
+	 * 
 	 * @param players A map containing all the players and their contribution.
 	 * @param table The BakeLootTable that should be used.
 	 * @param threshold Required to calculate the player's rewards.
 	 * @return A map with the player's UUIDs mapped to their contribution of whom the delivery of rewards failed.
 	 * @since 1.7.0
-	 * @author Geolykt
 	 */
 	public static Map<UUID,Integer> rewardPlayers(Map<UUID,Integer> players, BakeLootTable table, int threshold) {
 		ItemStack is [] = new ItemStack [table.items.length];
@@ -260,7 +241,6 @@ public class Bake_Auxillary {
 	 * @param name The quest name, used for the key of the values of the map.
 	 * @return A map with the player's UUIDs mapped to their contribution of whom the delivery of rewards failed.
 	 * @since 1.8.1
-	 * @author Geolykt
 	 */
 	public static Map<UUID,Entry<String, Integer>> rewardPlayers(Map<UUID,Integer> players, BakeLootTable table, int threshold, String name) {
 		players = rewardPlayers(players, table, threshold);
@@ -302,6 +282,7 @@ public class Bake_Auxillary {
 	/**
 	 * Removes every itemStack in a player's inventory that matches the Materials items and returns the amount that was removed multiplied with their provided value. The value is then rounded to an integer.
 	 * <br> Note: in 1.7.0 an issue would occur where this method would not return correct values.
+	 * 
 	 * @param player The player whose inventory should be checked
 	 * @param matches The Materials to match against paired with their values
 	 * @return The amount of items that were removed.

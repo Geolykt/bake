@@ -8,7 +8,7 @@ import de.geolykt.bake.Bake;
 import de.geolykt.bake.Bake_Auxillary;
 
 /**
- * String utillity class for the Bake Plugin. Not really recommended to be used by other plugins though.
+ * String utility class for the Bake Plugin. Not really recommended to be used by other plugins though.
  * This class mostly is used to format placeholders and other stuff, maybe it will be used when bake will support PAPI someday.
  * @author Geolykt
  * @since 1.6.0

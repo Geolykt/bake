@@ -28,7 +28,6 @@ import de.geolykt.bake.util.Leaderboard;
 import de.geolykt.bake.util.MeticsClass;
 import de.geolykt.bake.util.StringUtils;
 import de.geolykt.bake.util.BakeData.BakeData;
-import de.geolykt.bake.util.BakeData.GlobalBake;
 import de.geolykt.bake.util.BakeData.LocalBake;
 import net.milkbowl.vault.economy.Economy;
 
@@ -36,19 +35,6 @@ import net.milkbowl.vault.economy.Economy;
  * The main operating class
  * Almost all functions are called in here 
  * <ul><li>
- * 1.5.0: Added placeholder: "%TIMES%", which replaces the amount of times the project has been completed, stored in the config. <br>
- * 1.5.0: Added placeholder: "%TODAY%", which replaces how many projects were completed today. <br>
- * 1.5.0: Added placeholder: "%RECORD%", which replaces how many projects were completed on the day where the most projects were completed. <br>
- * 1.5.0: Added placeholder: "%PARTICIPANTS%", which replaces how many participants have participated in the ongoing project. <br>
- * 1.5.0: Added placeholder: "%LEFT%", which replaces the wheat that is left until the project is completed. <br> 
- * 1.5.0: Added placeholder: "%LAST%", which replaces the time and date when the last project got finished. <br>
- * 1.5.0: Added placeholder: "%RECORDDATE%", which replaces the date where the most records were done. <br>
- * 1.5.0: Added config parameter "bake.general.cnfgStore", if set to true, the plugin is allowed to store values inside the config (ignoring noMeddle) else some functions might not work properly. Note: the plugin will use it anyway, but it will not set default values. It might gain more meaning in future updates<br>
- * 1.5.0: Added config parameter "bake.general.doRecordSurpassBroadcast", by default set to true, if true, it will broadcast a message when the previous record was broken.<br>
- * 1.5.0: The Public int "BakeProgress" in class "Bake" is now a private int, if your plugin used the value, please change that <br>
- * 1.5.0: A broadcast will usually be done (if not disabled via setting) when the Record gets broken. <br>
- * 1.5.0: Added command: "/bakestats", which is just a bit like /bake, but has the intended use with statistics surrounding the bake project form all the way since 1.5.0 (or a newer version) was implemented on the server. <br>
- * </li><li>
  * 1.5.1: Added metrics <br>
  * 1.5.1: Added 1.8  - 1.11 support <br>
  * 1.5.1: Code cleanup <br>
@@ -112,6 +98,11 @@ import net.milkbowl.vault.economy.Economy;
  * 1.8.1: Players that rejoin will now be rewarded the correct amount<br>
  * 1.8.1: Quests now can give money again<br>
  * </li><li>
+ * 1.9.0: TODO Added commands as rewards<br>
+ * 1.9.0: TODO The bake quest deletion is now also performed by a task<br>
+ * 1.9.0: TODO Added placeholder: "%TIME_LEFT%, which displays the time that is left in the "hh:mm:ss"-format<br>
+ * 1.9.0: TODO Saving the first run variable in the savedata.yml
+ * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
  * ?: Added placeholder: "%BESTNAME%", which replaces the name of the top contributing player<br>
@@ -122,21 +113,20 @@ import net.milkbowl.vault.economy.Economy;
  * ?: Added placeholder: "%PARTICIPANTSRECORD%", which replaces how many participants have contributed at most. <br>
  * </li></ul>
  * 
- * @author Geolykt
  * @since 0.0.1 - SNAPSHOT
- * 
- * 
- *
  */
 public class Bake extends JavaPlugin {
+	
 	/**
 	 * API LEVEL for the bukkit server, not the plugin itself, you need that one, use the Bake Auxiliary instead!
+	 * 
 	 * @since 1.5.1, public since 1.8.1
 	 */
 	public int API_LEVEL;
 	
 	/**
 	 * Utility Class for parsing Bake Placeholders.
+	 * 
 	 * @since 1.6.0
 	 */
 	public StringUtils StringParser = null;
@@ -148,18 +138,21 @@ public class Bake extends JavaPlugin {
 
 	/**
 	 * Whether or not to use Vault (a money and permission API), see https://github.com/MilkBowl/VaultAPI
+	 * 
 	 * @since 1.5.2
 	 */
 	private boolean useVault = true;
 	
 	/**
 	 * The vault economy this plugin uses.
+	 * 
 	 * @since 1.5.2
 	 */
 	private Economy Eco = null;
 	
 	/**
 	 * Utility Class for the Leaderboard
+	 * 
 	 * @since 1.6.0-pre3
 	 */
 	public Leaderboard lbHandle = null;
@@ -209,11 +202,7 @@ public class Bake extends JavaPlugin {
 		}
 		
 		StringParser = new StringUtils(this);
-		if (getConfig().getBoolean("bake.gbake.enable", false)) {
-			DataHandle = new GlobalBake(this,getConfig().getString("bake.gbake.update_server", "localhost"), getConfig().getString("bake.gbake.update_client", "localhost"), getConfig().getLong("bake.gbake.interval", 1000l), getConfig().getString("bake.chat.gBakeRefresh", "N/A"));
-		} else {
-			DataHandle = new LocalBake(this);
-		}
+		DataHandle = new LocalBake(this);
 		
 		if (!getConfig().getBoolean("bake.general.useLeaderboard", true)) {
 			useLeaderboard = false;
@@ -545,29 +534,6 @@ public class Bake extends JavaPlugin {
 	}
 
 	/**
-	 * Like replaceAdvancedCached, but can be used to parse pretty much everything and it gets returned
-	 * @param s The string to be parsed.
-	 * @return The parsed string
-	 * @since 1.5.0
-	 * @author Geolykt
-	 * @deprecated will be removed in the future
-	 */
-	public String replaceAdvanced(String s) {
-		s = s.replaceAll("%TIMES%", String.valueOf(DataHandle.getOverallCompletionAmount()));
-		s = s.replaceAll("%TODAY%", String.valueOf(DataHandle.getProjectsFinishedToday()));
-		DateTimeFormatter format = DateTimeFormatter.RFC_1123_DATE_TIME.withLocale(Locale.UK)
-													.withZone(ZoneId.systemDefault());
-		s = s.replaceAll("%LAST%", format.format(DataHandle.getLastCompletion()));
-		format = DateTimeFormatter.ISO_LOCAL_DATE.withLocale(Locale.UK)
-				                                 .withZone(ZoneId.systemDefault());
-		s = s.replaceAll("%RECORDDATE%", format.format(DataHandle.getRecordDate()));
-		s = s.replaceAll("%RECORD%", String.valueOf(DataHandle.getRecordAmount()));
-		s = s.replaceAll("%PARTICIPANTS%", String.valueOf(DataHandle.getParticipantAmount()));
-		s = s.replaceAll("%PARTICIPANTSTODAY%", String.valueOf(DataHandle.getParticipantAmountToday()));
-		return s;
-	}
-
-	/**
 	 * Sets up the economy.
 	 * 
 	 * @return false if economy not found, true if it was found.
@@ -630,18 +596,6 @@ public class Bake extends JavaPlugin {
 		DataHandle.setParticipantCount((byte) 0x00);
 		DataHandle.setLastCompletion(Instant.now());
 		saveValues();	
-	}
-	
-	/**
-	 * Used to forcefully reward a player through default algorithms. Note: some differences between the two scripts may exist, so they aren't really 100% the same- <br>
-	 * Currently only rewards a fix amount of money. This however was made obsolete in 1.8.1
-	 * @since 1.6.0-pre4
-	 * @param player The player to receive the rewards
-	 * @deprecated Will be removed in 1.9.0
-	 */
-	@Deprecated
-	public void rewardPlayer(Player player) {
-		givePlayerMoney(player, getConfig().getDouble("bake.award.money", 0.0));
 	}
 
 	/**
