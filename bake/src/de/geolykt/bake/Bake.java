@@ -98,10 +98,11 @@ import net.milkbowl.vault.economy.Economy;
  * 1.8.1: Players that rejoin will now be rewarded the correct amount<br>
  * 1.8.1: Quests now can give money again<br>
  * </li><li>
+ * 1.9.0: Saving the first run variable in the savedata.yml
  * 1.9.0: TODO Added commands as rewards<br>
  * 1.9.0: TODO The bake quest deletion is now also performed by a task<br>
  * 1.9.0: TODO Added placeholder: "%TIME_LEFT%, which displays the time that is left in the "hh:mm:ss"-format<br>
- * 1.9.0: TODO Saving the first run variable in the savedata.yml
+ * 1.9.0: TODO Make /baketop a scoreboard<br>
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
@@ -177,19 +178,6 @@ public class Bake extends JavaPlugin {
 		
 		//Strip Bukkit.getBukkitVersion() to only return the Bukkit API level / Minecraft Minor Version Number under the Major.Minor.Patch format.
 		API_LEVEL = Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]); //Bukkit.getBukkitVersion() returns something like 1.12.2-R0.1-SNAPSHOT
-
-		MeticsClass metricsRunnable = new MeticsClass();
-		if (getConfig().getBoolean("bake.firstRun", true)) {
-			metricsRunnable.State = 0x01;
-			getConfig().set("bake.firstRun", false);
-			saveConfig();
-		} else if (getConfig().getBoolean("bake.metrics.opt-out", true)) {
-			metricsRunnable.State = 0x02;
-		} else {
-			metricsRunnable.State = 0x00;
-			metricsRunnable.plugin = this;
-		}
-		metricsRunnable.runTaskLater(this, 1L);
 		
 		if (getConfig().getBoolean("bake.general.useVault", true) == true) {
 			if (!setupEconomy()) {
@@ -279,8 +267,8 @@ public class Bake extends JavaPlugin {
 		} catch (IOException | InvalidConfigurationException e) {
 			e.printStackTrace();
 		}
-		Instant questBegann = Instant.parse(savedataConfiguration.getString("bake.qsave.began", "1970-01-01T00:00:00Z"));
 		
+		Instant questBegann = Instant.parse(savedataConfiguration.getString("bake.qsave.began", "1970-01-01T00:00:00Z"));
 		if (questBegann.equals(Instant.EPOCH)) {
 			DataHandle.newQuest();//Program never ran before
 		} else if (questBegann.plusSeconds(DataHandle.QuestCfg.getLong("questConfig.timeOutQuestsAfter", 0)).isBefore(Instant.now())) {
@@ -293,6 +281,19 @@ public class Bake extends JavaPlugin {
 		if (DataHandle.getTotalContributed() == 0) {
 			new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + " Over half of the servers using this plugin don't make use of it. Please delete this plugin if you are one of them. \n -Thanks, Geolykt");}}.runTask(this);
 		}
+		
+		MeticsClass metricsRunnable = new MeticsClass();
+		if (savedataConfiguration.getBoolean("bake.firstRun", true)) {
+			metricsRunnable.State = 0x01;
+			savedataConfiguration.set("bake.firstRun", false);
+			saveValues();
+		} else if (getConfig().getBoolean("bake.metrics.opt-out", true)) {
+			metricsRunnable.State = 0x02;
+		} else {
+			metricsRunnable.State = 0x00;
+			metricsRunnable.plugin = this;
+		}
+		metricsRunnable.runTaskLater(this, 1L);
 	}
 	
 	/**

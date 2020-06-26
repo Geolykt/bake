@@ -20,7 +20,7 @@ bake:
     #whether vault should be used
     useVault: true
   metrics:
-    #set this to false if you don't want bake to contact https://geolykt.de/src/bake/bakeMetrics.php
+    #set this to false if you don't want bake to contact https://geolykt.de/src/bake/bakeMetrics.php and bstats.org
     opt-out: false
   chat:
     recordSurpassBroadcast: '§6[BAKE] The previous record of %RECORD% on the %RECORDDATE%
