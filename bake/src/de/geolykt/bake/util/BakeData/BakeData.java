@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -56,15 +57,17 @@ public abstract class BakeData {
 	public HashMap<UUID, Boolean> dayReminderList = new HashMap<UUID, Boolean>();
 	
 	/**
-	 * <b> Changed in 1.7.0 to a HashMap<UUID, Integer>!</b>
+	 * <b> Changed in 1.8.1 to a HashMap &lt;UUID, Entry&lt;String,Integer>>!</b><br>
 	 * Stores who has contributed how much in the current project.<br>
-	 * PlayerUUID -> Has contributed how much?<br>
+	 * PlayerUUID -> Has contributed how much (value) in which quest (key)<br>
 	 * If greater to 0, then the player has contributed, if 0 or below then the player hasn't contributed.<br>
 	 * It is recommended to interpret null or missing values as a 0 or below.<br>
 	 * Stores who has contributed but not yet recieved its rewards. This may be due to the player not having inventory space or logging off.
-	 * @since 1.6.0-pre1, <b> Changed in 1.7.0 to a HashMap<UUID, Integer>!</b>
+	 * @since 1.6.0-pre1, <b> Changed in 1.8.1 to a HashMap &lt;UUID, Entry&lt;String,Integer>>!</b>
 	 */
-	public HashMap<UUID, Integer> notRewarded = new HashMap<UUID, Integer>();
+	public HashMap<UUID, Entry<String, Integer>> notRewarded = new HashMap<UUID, Entry<String, Integer>>();
+	
+	
 	
 	/**
 	 * Adds the contribution, which results in the BakeProgress value to DECREASE! <br>
@@ -215,7 +218,7 @@ public abstract class BakeData {
 			throw new IllegalArgumentException("Invalid command sender. The command sender is a player while the method does not expect it to be a player.");
 		}
 		String s = this.bakeInstance.StringParser.BakeCommandString;
-		s = bakeInstance.StringParser.getFormattedTooltip(activeQuest.getRawTooltip(), "");
+		s = s.replaceAll("%TOOLTIP%", bakeInstance.StringParser.getFormattedTooltip(activeQuest.getRawTooltip(), ""));
 		s = this.bakeInstance.StringParser.replaceFrequent(s, "");
 		sender.sendMessage(s);
 	}
@@ -346,7 +349,7 @@ public abstract class BakeData {
 	 * @since 1.6.0-pre4, last revision: 1.7.0
 	 */
 	public void onFinish() {
-		this.notRewarded.putAll(Bake_Auxillary.rewardPlayers(this.projectReminderList, activeQuest.getLoot(Integer.parseInt(Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1])), activeQuest.getThreshold()));
+		this.notRewarded.putAll(Bake_Auxillary.rewardPlayers(projectReminderList, activeQuest.getLoot(bakeInstance.API_LEVEL), activeQuest.getThreshold(), activeQuest.getName()));
 		newQuest();
 	}
 

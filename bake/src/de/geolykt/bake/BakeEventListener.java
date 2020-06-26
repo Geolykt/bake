@@ -4,6 +4,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import de.geolykt.bake.util.quest.Quest;
+
 public class BakeEventListener implements Listener {
 
 	private Bake instance;
@@ -17,10 +19,12 @@ public class BakeEventListener implements Listener {
 	@EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
 		if (instance.DataHandle.notRewarded.containsKey(event.getPlayer().getUniqueId())) {
-			Bake_Auxillary.rewardPlayer(event.getPlayer(), instance.DataHandle.activeQuest.getLoot(instance.API_LEVEL), instance.DataHandle.activeQuest.getThreshold(), instance.DataHandle.notRewarded.getOrDefault(event.getPlayer().getUniqueId(), 0));
+			Quest temp = new Quest(instance.DataHandle.QuestCfg, instance.DataHandle.notRewarded.get(event.getPlayer().getUniqueId()).getKey());
+			int contrib = instance.DataHandle.notRewarded.getOrDefault(event.getPlayer().getUniqueId(), new java.util.AbstractMap.SimpleEntry<String,Integer>(null, 0)).getValue();
+			Bake_Auxillary.rewardPlayer(event.getPlayer(), temp.getLoot(instance.API_LEVEL), temp.getThreshold(), contrib);
 			
         	instance.DataHandle.notRewarded.remove(event.getPlayer().getUniqueId());
-        	instance.rewardPlayer(event.getPlayer());
+        	instance.givePlayerMoney(event.getPlayer(), temp.getEcoRewardAmount(contrib));
         	event.getPlayer().sendMessage(msg);
 		}
     }

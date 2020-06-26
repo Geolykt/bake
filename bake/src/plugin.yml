@@ -1,8 +1,8 @@
 name: bake
 main: de.geolykt.bake.Bake
-version: 1.8.0-RELEASE
+version: 1.8.1-RELEASE
 author: Geolykt
-api-version: 1.15
+api-version: 1.14
 softdepend: [Vault] #Vault for money stuff
 website: https://github.com/Geolykt/bake
 commands:

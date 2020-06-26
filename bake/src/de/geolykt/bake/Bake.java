@@ -100,13 +100,17 @@ import net.milkbowl.vault.economy.Economy;
  * 1.7.0: Added placeholder "%LEFT%" displaying what's remaining<br>
  * </li><li>
  * 1.8.0: Implemented Quest Trees<br>
- * 1.8.0: TODO Quests now can give money again<br>
  * 1.8.0: Added Quest tooltip<br>
  * 1.8.0: Reworked default configurations<br>
  * 1.8.0: Added quest expire date<br>
  * 1.8.0: Quests now no longer reset after restart<br>
  * 1.8.0: Fixed a bug which would occur when multiple players contributed<br>
  * 1.8.0: Fixed a bug in which contributors who donated less get more rewards<br>
+ * </li><li>
+ * 1.8.1: Fixed /bake string parsing<br>
+ * 1.8.1: Players will now be rewarded with the correct loottable when they rejoin<br>
+ * 1.8.1: Players that rejoin will now be rewarded the correct amount<br>
+ * 1.8.1: Quests now can give money again<br>
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
@@ -126,10 +130,10 @@ import net.milkbowl.vault.economy.Economy;
  */
 public class Bake extends JavaPlugin {
 	/**
-	 * API LEVEL for the bukkit server, not the plugin itself, you need that one, use the Bake Auxillary instead!
-	 * @since 1.5.1
+	 * API LEVEL for the bukkit server, not the plugin itself, you need that one, use the Bake Auxiliary instead!
+	 * @since 1.5.1, public since 1.8.1
 	 */
-	protected int API_LEVEL;
+	public int API_LEVEL;
 	
 	/**
 	 * Utility Class for parsing Bake Placeholders.
@@ -629,14 +633,27 @@ public class Bake extends JavaPlugin {
 	}
 	
 	/**
-	 * Used to forcefully reward a player through default algorithms. Note: some differences between the two scripts may exist, so they aren't really 100% the same-
+	 * Used to forcefully reward a player through default algorithms. Note: some differences between the two scripts may exist, so they aren't really 100% the same- <br>
+	 * Currently only rewards a fix amount of money. This however was made obsolete in 1.8.1
 	 * @since 1.6.0-pre4
 	 * @param player The player to receive the rewards
+	 * @deprecated Will be removed in 1.9.0
 	 */
+	@Deprecated
 	public void rewardPlayer(Player player) {
+		givePlayerMoney(player, getConfig().getDouble("bake.award.money", 0.0));
+	}
+
+	/**
+	 * Gives a player money, doesn't give it in case useVault is false.
+	 * @since 1.8.1
+	 * @param player The player to receive the rewards
+	 * @param amount The amount that should be given
+	 */
+	public void givePlayerMoney(Player player, double amount) {
 		if (useVault) {
 			try {
-				Eco.depositPlayer(player, getConfig().getDouble("bake.award.money", 0.0));
+				Eco.depositPlayer(player, amount);
 			} catch (Exception e) {
 				useVault = false;
 				e.printStackTrace();

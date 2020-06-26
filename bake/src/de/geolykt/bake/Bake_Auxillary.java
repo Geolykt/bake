@@ -1,6 +1,7 @@
 package de.geolykt.bake;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,10 +25,10 @@ import de.geolykt.bake.util.quest.BakeLootTable;
 public class Bake_Auxillary {
 
 	/**
-	 * The version of the plugin in the MAJOR.MINOR.PATCH.ANNOTATION format.
+	 * The version of the plugin in the MAJOR.MINOR.PATCH-TYPE format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.8.0";
+	public static final String PLUGIN_VERSION = "1.8.1-SNAPSHOT";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
@@ -35,14 +36,15 @@ public class Bake_Auxillary {
 	 * 0x1=1.5.1
 	 * 0x2=1.5.2
 	 * 0x3=1.6.0-pre Releases
-	 * 0x4=1.6.0 (unused?)
+	 * 0x4=1.6.0 (while designated, it remains unused due to a bug)
 	 * 0x5=1.6.1
 	 * 0x6=1.6.2
 	 * 0x7=1.7.0
 	 * 0x8=1.8.0
+	 * 0x9=1.8.1
 	 * @since 1.5.1
 	 */
-	public static final byte PLUGIN_VERSION_ID = 0x8;
+	public static final byte PLUGIN_VERSION_ID = 0x9;
 	
 	/**
 	 * returns the length of the longest String in an array.<br>
@@ -214,7 +216,7 @@ public class Bake_Auxillary {
 	 * @param players A map containing all the players and their contribution.
 	 * @param table The BakeLootTable that should be used.
 	 * @param threshold Required to calculate the player's rewards.
-	 * @return A map with the player's UUIDs mapped to their contribution which rewards delivery was failed
+	 * @return A map with the player's UUIDs mapped to their contribution of whom the delivery of rewards failed.
 	 * @since 1.7.0
 	 * @author Geolykt
 	 */
@@ -225,7 +227,7 @@ public class Bake_Auxillary {
 			is [i] = new ItemStack(table.items[i]);
 			is [i].setItemMeta(table.itemMeta[i]);
 		}
-		//TODO this may be made more efficient, perhaps iterating over the onlinePlayers first? Nonetheless, the efficiency should be debated and what the most efficent approach is
+		//TODO this may be made more efficient, perhaps iterating over the onlinePlayers first? Nonetheless, the efficiency should be debated and what the most efficient approach is
 		
 		//Loop through items
 		for (int i = 0; i < table.items.length; i++) {
@@ -248,7 +250,32 @@ public class Bake_Auxillary {
 	}
 
 	/**
-	 * Rewards a player with the given table. Does not check whether the player is online though
+	 * Rewards the players from the given BakeLootTable. <br>
+	 * Uses the default item reward method for 1.7 onwards.<br>
+	 * DOES NOT REWARD MONEY
+	 * 
+	 * @param players A map containing all the players and their contribution.
+	 * @param table The BakeLootTable that should be used.
+	 * @param threshold Required to calculate the player's rewards.
+	 * @param name The quest name, used for the key of the values of the map.
+	 * @return A map with the player's UUIDs mapped to their contribution of whom the delivery of rewards failed.
+	 * @since 1.8.1
+	 * @author Geolykt
+	 */
+	public static Map<UUID,Entry<String, Integer>> rewardPlayers(Map<UUID,Integer> players, BakeLootTable table, int threshold, String name) {
+		players = rewardPlayers(players, table, threshold);
+		Map<UUID, Entry<String, Integer>> result = new HashMap<UUID, Map.Entry<String,Integer>>();
+		
+		for (Entry<UUID, Integer> e: players.entrySet()) {
+			result.put(e.getKey(), new java.util.AbstractMap.SimpleEntry<String, Integer>(name, e.getValue()));
+		}
+		return result;
+	}
+	
+	/**
+	 * Rewards a player with the given table. Does not check whether the player is online though<br>
+	 * DOES NOT REWARD MONEY
+	 * 
 	 * @param player The target player
 	 * @param table The BakeLootTable
 	 * @param threshold The threshold of the reason. Used to calculate how much the player is eligible from getting
@@ -267,7 +294,7 @@ public class Bake_Auxillary {
 			//Chance based things
 			if (Math.random()<table.baseChances[i]) {
 				//Get how much the player is eligible on getting & send the data to the Auxiliary
-				Bake_Auxillary.givePlayerItem(player, is[i], (int) Math.round(table.pool_amount[i]*(threshold/contrib)));
+				Bake_Auxillary.givePlayerItem(player, is[i], (int) Math.round(table.pool_amount[i]/(threshold/contrib)));
 			}
 		}
 	}
