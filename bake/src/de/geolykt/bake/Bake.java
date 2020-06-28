@@ -226,7 +226,6 @@ public class Bake extends JavaPlugin {
 						return;
 					}
 				}
-				
 			
 				savedataConfiguration.set("bake.save.times", getConfig().getInt("bake.save.times", 0));
 				savedataConfiguration.set("bake.save.last", getConfig().getString("bake.save.last", DateTimeFormatter.ISO_INSTANT.format(Instant.EPOCH)));
@@ -654,7 +653,7 @@ public class Bake extends JavaPlugin {
 	}
 
 	public Callable<String> metricsWheatAmount() {
-		int allTime = getConfig().getInt("bake.save.all", -1);
+		int allTime = DataHandle.getTotalContributed();
 		if (allTime < 1) {
 			return () -> "0";
 		} else if (allTime < 200){
