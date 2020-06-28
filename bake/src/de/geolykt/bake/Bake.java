@@ -8,7 +8,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
@@ -98,11 +97,11 @@ import net.milkbowl.vault.economy.Economy;
  * 1.8.1: Players that rejoin will now be rewarded the correct amount<br>
  * 1.8.1: Quests now can give money again<br>
  * </li><li>
- * 1.9.0: Saving the first run variable in the savedata.yml
+ * 1.9.0: Saving the first run variable in the savedata.yml <br>
+ * 1.9.0: The /baketop output is now in form of a scoreboard.<br>
  * 1.9.0: TODO Added commands as rewards<br>
  * 1.9.0: TODO The bake quest deletion is now also performed by a task<br>
  * 1.9.0: TODO Added placeholder: "%TIME_LEFT%, which displays the time that is left in the "hh:mm:ss"-format<br>
- * 1.9.0: TODO Make /baketop a scoreboard<br>
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
@@ -417,16 +416,11 @@ public class Bake extends JavaPlugin {
 			
 		} else if (cmd.getName().equalsIgnoreCase("baketop"))
 		{
-
-			if (!useLeaderboard) {
-				sender.sendMessage(getConfig().getString("bake.chat.leaderboard.unavail", "N/A"));
+			if ((!useLeaderboard) || !(sender instanceof Player)) {
+				sender.sendMessage("Unable to perform this action");
 				return true;
 			}
-			sender.sendMessage(StringParser.leaderboard_pre);
-			for (int i = 1; (i <= 11) && (i <= lbHandle.lbMap.size()); i++) {
-				sender.sendMessage(String.format(StringParser.leaderboard_main , i, Bukkit.getOfflinePlayer((UUID) lbHandle.SortedMap.keySet().toArray()[lbHandle.SortedMap.size()-i]).getName(),ChatColor.DARK_RED + "" + lbHandle.lbMap.get(lbHandle.SortedMap.keySet().toArray()[lbHandle.SortedMap.size()-i])));
-			}
-			sender.sendMessage(StringParser.leaderboard_post);
+			lbHandle.informPlayer((Player) sender);
 			return true;
 			
 		} else if (cmd.getName().equalsIgnoreCase("contribute")) 

@@ -35,10 +35,4 @@ bake:
       contr2: '§6[BAKE]§r%PLAYER%§r§6 has contributed %INTPROG% to the current bake quest.'
       #TODO: cooldown perhaps?
     finish2: §l§bThe bake project is finished! Everyone gets the rewards!
-    leaderboard:
-      'pre': "§b===== Bake best contributors ====="
-      'mid': "%d.: %-31s :§4 %s"
-      'post': "§b==============================="
-      #message displayed when bake.general.useLeaderboard is set to false
-      'unavail': "§4Bake leaderboards are not supported right now right here. Try again later."
     welcomeBack: "§6[BAKE] During your absence the a quest has been finished! As a contributor, you get some rewards!"

@@ -156,6 +156,7 @@ public class Bake_Auxillary {
 	}
 	
 	/**
+	 * Sorts in ascending order
 	 * @author https://stackoverflow.com/a/2581754/10466349
 	 * @since 1.6.0-pre3
 	 */
