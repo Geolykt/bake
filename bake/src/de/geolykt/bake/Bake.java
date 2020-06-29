@@ -99,9 +99,9 @@ import net.milkbowl.vault.economy.Economy;
  * </li><li>
  * 1.9.0: Saving the first run variable in the savedata.yml <br>
  * 1.9.0: The /baketop output is now in form of a scoreboard.<br>
- * 1.9.0: TODO Added commands as rewards<br>
- * 1.9.0: TODO The bake quest deletion is now also performed by a task<br>
+ * 1.9.0: The bake quest deletion is now also performed by a task<br>
  * 1.9.0: TODO Added placeholder: "%TIME_LEFT%, which displays the time that is left in the "hh:mm:ss"-format<br>
+ * 1.9.0: TODO Added commands as rewards<br>
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
@@ -269,7 +269,7 @@ public class Bake extends JavaPlugin {
 		Instant questBegann = Instant.parse(savedataConfiguration.getString("bake.qsave.began", "1970-01-01T00:00:00Z"));
 		if (questBegann.equals(Instant.EPOCH)) {
 			DataHandle.newQuest();//Program never ran before
-		} else if (questBegann.plusSeconds(DataHandle.QuestCfg.getLong("questConfig.timeOutQuestsAfter", 0)/1000).isBefore(Instant.now())) {
+		} else if (questBegann.plusMillis(DataHandle.QuestCfg.getLong("questConfig.timeOutQuestsAfter", 0)).isBefore(Instant.now())) {
 			DataHandle.newQuest();//Quest timed out.
 		} else {
 			DataHandle.newQuest(savedataConfiguration.getString("bake.qsave.name", "N/A"));

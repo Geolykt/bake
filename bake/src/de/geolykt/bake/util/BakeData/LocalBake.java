@@ -27,7 +27,7 @@ public class LocalBake extends BakeData {
 	public LocalBake(Bake plugin) {
 		super(plugin);
 		totalContrib = plugin.getConfig().getInt("bake.save.all", -1);
-		taskCleanup();
+		new QuestCleanerTask(this).runTask(plugin);
 	}
 
 	@Override
