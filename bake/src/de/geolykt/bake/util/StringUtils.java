@@ -171,6 +171,7 @@ public class StringUtils {
 		s = s.replaceAll("%PLAYER%", player);
 		s = s.replaceAll("%ALLTIME_CONTRIB%", String.valueOf(bakeInstance.DataHandle.getTotalContributed()));
 		s = s.replaceAll("%LEFT%", String.valueOf(bakeInstance.DataHandle.getRemaining()));
+		s = s.replaceAll("%TIME_LEFT%", bakeInstance.DataHandle.getFormattedTimeout());
 		return s;
 	}
 	

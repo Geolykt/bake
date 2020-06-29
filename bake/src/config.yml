@@ -27,7 +27,7 @@ bake:
     recordSurpassBroadcast: '§6[BAKE] The previous record of %RECORD% on the %RECORDDATE%
       was broken by the new record of %TODAY%!'
     #used in the /bake message
-    progress2: "§b%TOOLTIP%\n §r %PERCENT% % done! (%INTPROG% / %INTMAX%)"
+    progress2: "§b%TOOLTIP%\n §r %PERCENT% % done! (%INTPROG% / %INTMAX%), %TIME_LEFT% remaining"
     #used in the /bakestats message
     bakestats: "Completions: %TIMES% \n Record: %RECORD% at %RECORDDATE% \n Last finished: %LAST% \n %PARTICIPANTS% Have contributed."
     contr2: '%INTPROG% was added to the project! Thanks!'

@@ -100,7 +100,7 @@ import net.milkbowl.vault.economy.Economy;
  * 1.9.0: Saving the first run variable in the savedata.yml <br>
  * 1.9.0: The /baketop output is now in form of a scoreboard.<br>
  * 1.9.0: The bake quest deletion is now also performed by a task<br>
- * 1.9.0: TODO Added placeholder: "%TIME_LEFT%, which displays the time that is left in the "hh:mm:ss"-format<br>
+ * 1.9.0: Added placeholder: "%TIME_LEFT%", which displays the time that is left in the "hh:mm:ss"-format<br>
  * 1.9.0: TODO Added commands as rewards<br>
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
