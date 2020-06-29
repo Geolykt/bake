@@ -28,9 +28,9 @@ public class Quest {
 		CONTRIBUTION
 	}
 
-	private String name = "";
+	private final String name;
 	
-	private QuestType questType = QuestType.INVALID;
+	private final QuestType questType;
 	
 	private int requirement_left;
 	
@@ -53,7 +53,7 @@ public class Quest {
 	 */
 	public Quest(YamlConfiguration questCfg, String questNameID) {
 		config = questCfg;
-		this.name = questNameID;
+		name = questNameID;
 		if (config.getString("quests." + name + ".type", "N/A").equalsIgnoreCase("contribution")) {
 			questType = QuestType.CONTRIBUTION;
 		} else {

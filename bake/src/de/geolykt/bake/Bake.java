@@ -269,7 +269,7 @@ public class Bake extends JavaPlugin {
 		Instant questBegann = Instant.parse(savedataConfiguration.getString("bake.qsave.began", "1970-01-01T00:00:00Z"));
 		if (questBegann.equals(Instant.EPOCH)) {
 			DataHandle.newQuest();//Program never ran before
-		} else if (questBegann.plusSeconds(DataHandle.QuestCfg.getLong("questConfig.timeOutQuestsAfter", 0)).isBefore(Instant.now())) {
+		} else if (questBegann.plusSeconds(DataHandle.QuestCfg.getLong("questConfig.timeOutQuestsAfter", 0)/1000).isBefore(Instant.now())) {
 			DataHandle.newQuest();//Quest timed out.
 		} else {
 			DataHandle.newQuest(savedataConfiguration.getString("bake.qsave.name", "N/A"));
@@ -338,8 +338,6 @@ public class Bake extends JavaPlugin {
 		saveValues();
 	}
 	
-
-
 	/**
 	 * This function writes specific values in the config file (<u>if permitted</u>) for storage and later use.
 	 * <br> Note: this assumes readValues() has already been performed.
