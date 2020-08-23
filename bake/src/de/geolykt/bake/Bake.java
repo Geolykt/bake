@@ -647,7 +647,7 @@ public class Bake extends JavaPlugin {
 			list.add("all");
 			return list;
 		}
-		return super.onTabComplete(sender, command, alias, args);
+		return super.onTabComplete(sender, command, alias, args);//Use the default tab completion as the default in case nothing else works
 	}
 
 	public Callable<String> metricsWheatAmount() {

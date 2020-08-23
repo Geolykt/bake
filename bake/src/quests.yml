@@ -24,6 +24,10 @@ quests:
         - WITHER_SKELETON_SKULL
         - WITHER_ROSE
         - NETHER_STAR
+      #commands that can be called, this needn't to be the actual name/alias of the command, but rather any string
+      commands:
+        - TOTALLY_ARBITARY_STRING
+        - I_KNOW_THIS_DOES_NOT_MAKE_SENSE
       WITHER_SKELETON_SKULL:
         'baseChance': 1.0 #this is a double that can range from 0 (never rolled) to 1 (always rolled).
         'pool': 16 #size of the pool. The higher, the higher the rewards for players
@@ -44,6 +48,18 @@ quests:
         'display_name': ''
         #to increase uniqueness
         'enchantment': 'UNBREAKING@1|MENDING@1'
+      TOTALLY_ARBITARY_STRING:
+        'baseChance': 1
+        #the type of the command
+        # FOREACH = the command will be called as many times as there are players, allows for the %PLAYER% placeholder
+        # ONCE = only calls the command once
+        'type': 'FOREACH'
+        #the command to call, note that the command will always be called as console!
+        'command': 'xp add %PLAYER% 1396'
+      I_KNOW_THIS_DOES_NOT_MAKE_SENSE:
+        'baseChance': 1
+        'type': 'ONCE'
+        'command': 'say gg everyone'
     #the node that should be used after this node
     childNode: 
       - endNode
