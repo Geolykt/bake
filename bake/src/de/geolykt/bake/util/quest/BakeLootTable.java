@@ -29,14 +29,6 @@ public class BakeLootTable {
 	public double money;
 	public Collection<CommandRewardNode> commands;
 	
-	private String[] getCommandArgs(String in) {
-		String [] prov = in.split(" ", 2);
-		if (prov.length != 2) {
-			return new String[0];
-		}
-		return prov[1].split(" ");
-	}
-	
 	/**
 	 * Loads the BakeLootTable from the given path of the given config file
 	 * @param config The configuration
@@ -101,7 +93,7 @@ public class BakeLootTable {
 			String basePath = path + "." + str;
 			if (config.getDouble(basePath + ".baseChance", 0.0) > rand.nextDouble()) {
 				String cmd = config.getString(basePath + ".command", "");
-				commands.add(new CommandRewardNode(cmd.split(" ")[0], getCommandArgs(cmd), CommandRewardRecieverModifier.valueOf(config.getString(basePath + ".type", "FOREACH"))));
+				commands.add(new CommandRewardNode(cmd, CommandRewardRecieverModifier.valueOf(config.getString(basePath + ".type", "FOREACH"))));
 			}
 		});
 	}
