@@ -32,7 +32,7 @@ bake:
     bakestats: "Completions: %TIMES% \n Record: %RECORD% at %RECORDDATE% \n Last finished: %LAST% \n %PARTICIPANTS% Have contributed."
     contr2: '%INTPROG% was added to the project! Thanks!'
     global:
-      contr2: '§6[BAKE]§r%PLAYER%§r§6 has contributed %INTPROG% to the current bake quest.'
+      contr2: '§6[BAKE]§r %PLAYER%§r§6 has contributed %INTPROG% to the current bake quest.'
       #TODO: cooldown perhaps?
     finish2: §l§bThe bake project is finished! Everyone gets the rewards!
     welcomeBack: "§6[BAKE] During your absence the a quest has been finished! As a contributor, you get some rewards!"

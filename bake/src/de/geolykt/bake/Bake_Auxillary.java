@@ -219,15 +219,15 @@ public class Bake_Auxillary {
 				for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
 					if (players.containsKey(onlinePlayer.getUniqueId())) {
 						//Get how much the player is eligible on getting & send the data to the Auxiliary
-						Bake_Auxillary.givePlayerItem(Bukkit.getPlayer(onlinePlayer.getUniqueId()), is[i], (int) Math.round(table.pool_amount[i]/(threshold/players.getOrDefault(onlinePlayer.getUniqueId(),0))));
+						Bake_Auxillary.givePlayerItem(onlinePlayer, is[i], (int) Math.round(table.pool_amount[i]/(threshold/players.getOrDefault(onlinePlayer.getUniqueId(),0))));
+						table.commands.forEach((node) -> node.rewardPlayer(onlinePlayer));
 					}
 				}
 			}
 		}
+		table.commands.forEach((node) -> node.rewardAll());
 		//Remove online players from the list, offline players should remain.
-		for (Player p : Bukkit.getOnlinePlayers()) {
-			players.remove(p.getUniqueId());
-		}
+		Bukkit.getOnlinePlayers().forEach((p) -> players.remove(p.getUniqueId()));
 		return players;
 	}
 

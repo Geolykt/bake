@@ -90,6 +90,7 @@ public abstract class BakeData {
 	 * @since 1.7.0
 	 * @deprecated Use is unknown
 	 */
+	@Deprecated
 	protected byte ParticipantsToday = 0;
 	
 	/**
