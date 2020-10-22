@@ -6,9 +6,17 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
 
 import de.geolykt.bake.Bake;
 import de.geolykt.bake.Bake_Auxillary;
@@ -21,12 +29,14 @@ import de.geolykt.bake.Bake_Auxillary;
 public class Leaderboard {
 
 	public HashMap<UUID, Integer> lbMap;
-	public LinkedHashMap<UUID, Integer> SortedMap;
+	public LinkedHashMap<UUID, Integer> sortedMap;
 	private Bake backlink;
+	private ArrayList<UUID> informedPlayers;
 	
 	public Leaderboard (Bake plugin) {
 		this.backlink = plugin;
 		lbMap = new HashMap<UUID, Integer>();
+		informedPlayers = new ArrayList<UUID>();
 	}
 	
 	/**
@@ -55,11 +65,12 @@ public class Leaderboard {
 				s = br.readLine();
 			}
 			br.close();
-			System.gc();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		resort();
+		updateSB();
+		System.gc();
 	}
 	
 
@@ -85,16 +96,65 @@ public class Leaderboard {
 	}
 	
 	/**
-	 * @param player The uuid of whom should the update occur
+	 * @param player The UUID of whom should the update occur
 	 * @param amount The amount that should be added/removed
 	 */
 	public void update (UUID player, int amount) {
 		amount += lbMap.getOrDefault(player, 0);
 		lbMap.put(player, amount);
 		resort();
+		updateSB();
 	}
 	
 	public void resort() {
-		SortedMap = (LinkedHashMap<UUID, Integer>) Bake_Auxillary.sortByValue(lbMap);
+		sortedMap = (LinkedHashMap<UUID, Integer>) Bake_Auxillary.sortByValue(lbMap);
+	}
+
+	private void updateSB () {
+		for (UUID id: informedPlayers) {
+			OfflinePlayer p = Bukkit.getOfflinePlayer(id);
+			if (!p.isOnline()) {
+				continue;
+			}
+			Objective o = ((Player) p).getScoreboard().getObjective("baketop");
+			o.setDisplaySlot(DisplaySlot.SIDEBAR);
+			int s = lbMap.size()-20;
+			for (int i = lbMap.size()-1; i > s && (i > -1); i--){
+				UUID uuid = (UUID) sortedMap.keySet().toArray()[i];
+				try {
+					o.getScore(Bukkit.getPlayer(uuid).getName()).setScore(lbMap.get(uuid));
+				} catch (NullPointerException expected) {
+					o.getScore("NPE"+i).setScore(lbMap.get(uuid));
+				}
+			}
+		}
+	}
+	
+	private void updatePSB (Player p) {
+		Objective o = (p).getScoreboard().getObjective("baketop");
+		o.setDisplaySlot(DisplaySlot.SIDEBAR);
+		int s = lbMap.size()-20;
+		for (int i = lbMap.size()-1; i > s && (i > -1); i--){
+			UUID uuid = (UUID) sortedMap.keySet().toArray()[i];
+			try {
+				o.getScore(Bukkit.getPlayer(uuid).getName()).setScore(lbMap.get(uuid));
+			} catch (NullPointerException expected) {
+				o.getScore("NPE"+i).setScore(lbMap.get(uuid));
+			}
+		}
+	}
+	
+	public void informPlayer(Player p) {
+		if (informedPlayers.remove(p.getUniqueId())) {
+			p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+			p.sendMessage("you are no longer subscribed to the bake leaderboards.");
+		} else {
+			final Scoreboard sb = Bukkit.getScoreboardManager().getNewScoreboard();
+			sb.registerNewObjective("baketop", "dummy", "Bake - top contributors");
+			p.setScoreboard(sb);
+			updatePSB(p);
+			informedPlayers.add(p.getUniqueId());
+			p.sendMessage("you are now subscribed to the bake leaderboards. Perform the command again to unsubscribe.");
+		}
 	}
 }

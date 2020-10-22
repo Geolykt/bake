@@ -133,7 +133,7 @@ public class EnchantmentLib {
 
 	/**
 	 * Returns an enchantment based on the input string.<br>
-	 * Note: uses 1.13 Names for API 13, 1.12 name for API 12 <br>
+	 * Note: uses 1.13 Names for API 13 (or later), 1.12 name for API 12 (or earlier)<br>
 	 * Source for errors: Enchantment.getByKey only exists in Bukkit API level 13 or higher, but not in spigot API level 12 or lower! <br>
 	 * So the code will check which version the server is running on and then uses the appropriate function, this is doable as Java allows the use of invalid functions within the sourcecode as long as they don't get called. <br>
 	 * @param enchantment The name of the enchantment.

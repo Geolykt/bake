@@ -10,9 +10,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import de.geolykt.bake.Bake;
 import de.geolykt.bake.Bake_Auxillary;
+import de.geolykt.bake.util.quest.Quest;
 
 /**
  * 
@@ -25,6 +27,7 @@ public class LocalBake extends BakeData {
 	public LocalBake(Bake plugin) {
 		super(plugin);
 		totalContrib = plugin.getConfig().getInt("bake.save.all", -1);
+		new QuestCleanerTask(this).runTask(plugin);
 	}
 
 	@Override
@@ -119,4 +122,48 @@ public class LocalBake extends BakeData {
 	public int getRemaining() {
 		return activeQuest.getRequirement_left();
 	}
+
+	/**
+	 * Method to handle the timeout of quests
+	 * 
+	 * @since 1.9.0
+	 */
+	protected void taskCleanup() {
+		long diff = System.currentTimeMillis()-activeQuest.getQuestBeginningInstant().toEpochMilli();
+		if (diff > QuestCfg.getLong("questConfig.timeOutQuestsAfter", 86400000)) {
+			newStartQuest();
+		}
+		new QuestCleanerTask(this).runTaskLater(bakeInstance, (-diff+QuestCfg.getLong("questConfig.timeOutQuestsAfter", 86400000))/50);
+	}
+	
+	/**
+	 * Starts a new quest, independent from it's successor
+	 * 
+	 * @since 1.9.0
+	 */
+	private void newStartQuest() {
+		List <String> quests = QuestCfg.getStringList("quests.names");
+		bakeInstance.getLogger().info("[BAKE] Choosing new quest. Quests available: " + quests.toString());
+		int questID = (int) Math.round(Math.random()*(quests.size()-1));
+		activeQuest = new Quest(QuestCfg, quests.get(questID));
+	}
+} 
+/**
+ * BukkitRunnable to handle the timeout of quests
+ * 
+ * @since 1.9.0
+ */
+class QuestCleanerTask extends BukkitRunnable {
+
+	private final LocalBake qmgr;
+	
+	public QuestCleanerTask(LocalBake questManager) {
+		qmgr = questManager;
+	}
+	
+	@Override
+	public void run() {
+		qmgr.taskCleanup();
+	}
+	
 }

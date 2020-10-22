@@ -1,7 +1,10 @@
 package de.geolykt.bake.util.quest;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -24,6 +27,7 @@ public class BakeLootTable {
 	public Float baseChances [];
 	public ItemMeta itemMeta [];
 	public double money;
+	public Collection<CommandRewardNode> commands;
 	
 	/**
 	 * Loads the BakeLootTable from the given path of the given config file
@@ -40,6 +44,7 @@ public class BakeLootTable {
 		itemMeta = new ItemMeta[length];
 		baseChances = new Float[length];
 		money = config.getDouble(path + ".items", 0.0);
+		commands = new LinkedList<CommandRewardNode>();
 		
 		List<String> itemList = config.getStringList(path + ".items"); 
 		
@@ -55,9 +60,7 @@ public class BakeLootTable {
 			for (String string : config.getString(path + "." + itemList.get(i) + ".lore", "").split("\\|")) {
 				lore.add(string);
 			}
-			if (lore != null) {
-				meta.setLore(lore);
-			}
+			meta.setLore(lore);
 			lore.clear();
 			
 			//Display name
@@ -85,5 +88,13 @@ public class BakeLootTable {
 			}
 			itemMeta[i] = meta;
 		}
+		ThreadLocalRandom rand = ThreadLocalRandom.current();
+		config.getStringList(path + ".commands").forEach( (str) -> {
+			String basePath = path + "." + str;
+			if (config.getDouble(basePath + ".baseChance", 0.0) > rand.nextDouble()) {
+				String cmd = config.getString(basePath + ".command", "");
+				commands.add(new CommandRewardNode(cmd, CommandRewardRecieverModifier.valueOf(config.getString(basePath + ".type", "FOREACH"))));
+			}
+		});
 	}
 }

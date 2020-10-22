@@ -1,5 +1,6 @@
 package de.geolykt.bake.util.BakeData;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,7 +8,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -90,6 +90,7 @@ public abstract class BakeData {
 	 * @since 1.7.0
 	 * @deprecated Use is unknown
 	 */
+	@Deprecated
 	protected byte ParticipantsToday = 0;
 	
 	/**
@@ -431,5 +432,13 @@ public abstract class BakeData {
 			//Valid quest name
 			activeQuest = new Quest(QuestCfg, name);
 		}
+	}
+
+	public String getFormattedTimeout() {
+		Duration dur = Duration.between(activeQuest.getQuestBeginningInstant().plusMillis(QuestCfg.getLong("questConfig.timeOutQuestsAfter", 86400000)), Instant.now()).abs();
+		long h = dur.toHours();
+		long m = dur.toMinutes()%60;
+		long s = dur.getSeconds()%60;
+		return String.format("%02d:%02d:%02d", h, m, s);
 	}
 }
