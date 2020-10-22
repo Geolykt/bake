@@ -19,10 +19,6 @@ bake:
     rewardLater: true
     #whether vault should be used
     useVault: true
-  metrics:
-    #set this to false if you don't want bake to contact https://geolykt.de/src/bake/bakeMetrics.php and bstats.org
-    #the bstats.org value can be also changed via the bstats folder
-    opt-out: false
   chat:
     recordSurpassBroadcast: '§6[BAKE] The previous record of %RECORD% on the %RECORDDATE%
       was broken by the new record of %TODAY%!'

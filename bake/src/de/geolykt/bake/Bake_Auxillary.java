@@ -28,25 +28,26 @@ public class Bake_Auxillary {
 	 * The version of the plugin in the MAJOR.MINOR.PATCH-TYPE format.
 	 * @since 1.4.1, public since 1.5.1
 	 */
-	public static final String PLUGIN_VERSION = "1.9.0-SNAPSHOT";
+	public static final String PLUGIN_VERSION = "1.9.1-SNAPSHOT";
 	
 	/**
 	 * The version of the plugin in the format used by the bakeMetrics software.
 	 * <pre>
-	 * 0x0=unused
-	 * 0x1=1.5.1
-	 * 0x2=1.5.2
-	 * 0x3=1.6.0-pre Releases
-	 * 0x4=1.6.0 (while designated, it remains unused due to a bug)
-	 * 0x5=1.6.1
-	 * 0x6=1.6.2
-	 * 0x7=1.7.0
-	 * 0x8=1.8.0
-	 * 0x9=1.8.1
-	 * 0xa=1.9.0</pre>
+	 * 0x00=unused
+	 * 0x01=1.5.1
+	 * 0x02=1.5.2
+	 * 0x03=1.6.0-pre Releases
+	 * 0x04=1.6.0 (while designated, it remains unused due to a bug)
+	 * 0x05=1.6.1
+	 * 0x06=1.6.2
+	 * 0x07=1.7.0
+	 * 0x08=1.8.0
+	 * 0x09=1.8.1
+	 * 0x0a=1.9.0
+	 * 0x0b=1.9.1</pre>
 	 * @since 1.5.1
 	 */
-	public static final byte PLUGIN_VERSION_ID = 0xa;
+	public static final byte PLUGIN_VERSION_ID = 0x0b;
 	
 	/**
 	 * A library function to get if a player can afford to lose <b>count</b> items of Material <b>material</b>.

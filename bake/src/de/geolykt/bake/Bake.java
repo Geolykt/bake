@@ -21,7 +21,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import de.geolykt.bake.util.Leaderboard;
 import de.geolykt.bake.util.MeticsClass;
@@ -101,7 +100,10 @@ import net.milkbowl.vault.economy.Economy;
  * 1.9.0: The /baketop output is now in form of a scoreboard.<br>
  * 1.9.0: The bake quest deletion is now also performed by a task<br>
  * 1.9.0: Added placeholder: "%TIME_LEFT%", which displays the time that is left in the "hh:mm:ss"-format<br>
- * 1.9.0: TODO Added commands as rewards<br>
+ * 1.9.0: Added commands as rewards<br>
+ * </li><li>
+ * 1.9.1: The own metrics system was removed <br>
+ * 1.9.1: Reworked the leaderboard data storage<br>
  * </li><li>
  * ?: Added placeholder: "%YESTERDAY%", which replaces the number of projects finished in the day before. <br>
  * ?: Added placeholder: "%AUTOFILL%{x}", which fills the line with the maximum amount of chars anywhere else in a line in the message<br>
@@ -268,29 +270,20 @@ public class Bake extends JavaPlugin {
 		
 		Instant questBegann = Instant.parse(savedataConfiguration.getString("bake.qsave.began", "1970-01-01T00:00:00Z"));
 		if (questBegann.equals(Instant.EPOCH)) {
-			DataHandle.newQuest();//Program never ran before
+			DataHandle.newQuest(); //Program never ran before
 		} else if (questBegann.plusMillis(DataHandle.QuestCfg.getLong("questConfig.timeOutQuestsAfter", 0)).isBefore(Instant.now())) {
-			DataHandle.newQuest();//Quest timed out.
+			DataHandle.newQuest(); //Quest timed out.
 		} else {
 			DataHandle.newQuest(savedataConfiguration.getString("bake.qsave.name", "N/A"));
 			DataHandle.activeQuest.setRequirement_left(savedataConfiguration.getInt("bake.qsave.progress", 0));
 		}
 
 		if (DataHandle.getTotalContributed() == 0) {
-			new BukkitRunnable() {public void run() {getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + " Over half of the servers using this plugin don't make use of it. Please delete this plugin if you are one of them. \n -Thanks, Geolykt");}}.runTask(this);
+			Bukkit.getScheduler().runTaskLater(this, () -> getServer().broadcastMessage(ChatColor.GOLD + "[BAKE]" + ChatColor.DARK_RED + " Over half of the servers using this plugin don't make use of it. Please delete this plugin if you are one of them. \n -Thanks, Geolykt"), 2000l);
 		}
 		
 		MeticsClass metricsRunnable = new MeticsClass();
-		if (savedataConfiguration.getBoolean("bake.firstRun", true)) {
-			metricsRunnable.State = 0x01;
-			savedataConfiguration.set("bake.firstRun", false);
-			saveValues();
-		} else if (getConfig().getBoolean("bake.metrics.opt-out", true)) {
-			metricsRunnable.State = 0x02;
-		} else {
-			metricsRunnable.State = 0x00;
-			metricsRunnable.plugin = this;
-		}
+		metricsRunnable.plugin = this;
 		metricsRunnable.runTaskLater(this, 1L);
 	}
 	

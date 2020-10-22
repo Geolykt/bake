@@ -1,9 +1,5 @@
 package de.geolykt.bake.util.quest;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Locale;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

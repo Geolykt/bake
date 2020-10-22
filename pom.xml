@@ -2,7 +2,8 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.geolykt</groupId>
   <artifactId>bake</artifactId>
-  <version>1.9.0-RELEASE</version>
+  <version>1.9.1-SNAPSHOT</version>
+  <!-- Before release: remember to change the Bake Aux and plugin.yml versions! -->
   <name>Bake</name>
   
   <repositories>
