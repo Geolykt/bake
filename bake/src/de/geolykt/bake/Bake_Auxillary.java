@@ -217,9 +217,9 @@ public class Bake_Auxillary {
 			if (Math.random()<table.baseChances[i]) {
 				//cycle through online players
 				for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-					if (players.containsKey(onlinePlayer.getUniqueId())) {
+					if (players.getOrDefault(onlinePlayer.getUniqueId(),0) != 0) {
 						//Get how much the player is eligible on getting & send the data to the Auxiliary
-						Bake_Auxillary.givePlayerItem(onlinePlayer, is[i], (int) Math.round(table.pool_amount[i]/(threshold/players.getOrDefault(onlinePlayer.getUniqueId(),0))));
+						givePlayerItem(onlinePlayer, is[i], (int) Math.round(table.pool_amount[i]/Math.max(threshold/players.get(onlinePlayer.getUniqueId()),1)));
 						table.commands.forEach((node) -> node.rewardPlayer(onlinePlayer));
 					}
 				}
